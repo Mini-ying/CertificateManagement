@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d21a5b4"],{baba:function(a){a.exports=JSON.parse('[{"id":"0","label":"菜单栏","children":[{"id":"homepage","label":"首页"},{"id":"project","label":"项目管理"},{"id":"certificate","label":"证书管理"},{"id":"backstage","label":"后台管理"},{"id":"information","label":"个人信息"}]}]')}}]);
+//# sourceMappingURL=chunk-2d21a5b4.716dc680.js.map
