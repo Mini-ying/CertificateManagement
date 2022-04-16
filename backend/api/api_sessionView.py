@@ -135,21 +135,23 @@ class SessionApi(Resource):
         # 获取需要修改的项目
         user_id = g.user.user_id
         project_id = args.get('project_id')
+        session_id = args.get('session_id')
         number = args.get('number')
         category = args.get('category')
 
+        # 判断修改后的信息是否存在完全一致的
         sessionn = Session.query.filter(and_(Session.number == number,Session.category == category,Session.project_id == project_id,
                                              User_sessions.session_id == Session.session_id,User_sessions.user_id == user_id)).first()
 
-        # 判断修改后的信息是否存在
         if sessionn:
             return jsonify(re_coder=RET.DATAEXIST, msg="该届次已存在，请修改！")
 
         # 保存修改后的项目信息
-        user = UserInfo.query.filter_by(user_id=user_id).first()
-        ses=Session(number=number,category=category,project_id=project_id)
+        user = UserInfo.query.get(user_id)
+        ses=Session.query.get(session_id)
 
-        user.relate_course.append(ses)
+        ses.number=number
+        ses.category=category
         db.session.commit()
 
         sessions = Session.query.filter(
@@ -163,10 +165,18 @@ class SessionApi(Resource):
         session_id = args.get('session_id')
         user_id = g.user.user_id
         project_id=args.get('project_id')
+
+        #删除该届次下的所有证书
+        certificates=Certificate.query.filter(Certificate.session_id==session_id).all()
+        for certificate in certificates:
+            db.session.delete(certificate)
+            db.session.commit()
+
+        #解除届次和用户的关联关系
         sessionn=Session.query.get(session_id)
         user = UserInfo.query.get(user_id)
-
         user.sessions.remove(sessionn)
+
         db.session.delete(sessionn)
         db.session.commit()
 

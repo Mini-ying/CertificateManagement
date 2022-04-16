@@ -165,15 +165,8 @@ class CertificateApi(Resource):
         user_id = g.user.user_id
         args=update_parser.parse_args()
         project_id = args.get('project_id')
-        session_id = args('session_id')
+        session_id = args.get('session_id')
         c_id = args.get('certificate_id')
-
-        # 获取需要修改的项目
-        certificate = Certificate.query.filter(
-            and_(Certificate.certificate_id == c_id, Certificate.user_id == user_id,
-                 Certificate.project_id==project_id,Certificate.session_id==session_id)).first()
-
-        # 修改并保存编辑后的项目
         c_name = args.get('certificate_name')
         winner = args.get('winner')
         level = args.get('level')
@@ -181,6 +174,16 @@ class CertificateApi(Resource):
         rank = args.get('rank')
         giver = args.get('giver')
 
+        # 验证有无完全一致的证书
+        certifi=Certificate.query.filter(and_(
+            Certificate.certificate_name==c_name,Certificate.winner==winner,Certificate.level==level,Certificate.date==date,Certificate.rank==rank,Certificate.giver==giver)).first()
+        if certifi:
+            return jsonify(re_coder=RET.DATAEXIST, msg="该证书已存在，请修改！")
+            
+        # 获取需要修改的证书
+        certificate=Certificate.query.get(c_id)
+
+        # 修改并保存编辑后的证书
         certificate.certificate_name = c_name
         certificate.certificate_id = c_id
         certificate.winner = winner

@@ -105,23 +105,18 @@ class ProjectApi(Resource):
         p_name = args.get('project_name')
         user_id = g.user.user_id
 
-        p_i = Project.query.filter(Project.project_id == p_id).first()
+        project = Project.query.filter(Project.project_id == p_id).first()
         p_n = Project.query.filter(Project.project_name == p_name).first()
 
         # 判断修改后的信息是否重复
-        if p_i:
-            return jsonify(re_coder=RET.DATAEXIST, msg="项目id不能重复，请修改！")
         if p_n:
             return jsonify(re_coder=RET.DATAEXIST, msg="项目名不能重复，请修改！")
 
         # 保存修改后的项目信息
-        user = UserInfo.query.filter_by(user_id=user_id).first()
-        project = Project(project_id=p_id, project_name=p_name)
-
-        user.relate_course.append(project)
+        project.project_name=p_name
         db.session.commit()
 
-        user = UserInfo.query.filter_by(user_id=user_id)
+        user = UserInfo.query.get(user_id)
         projects = user.projects
         return {'re_code': RET.OK, 'msg': '编辑成功', 'projects': marshal(projects, project_fields)}
 
@@ -133,6 +128,20 @@ class ProjectApi(Resource):
         project = Project.query.get(pid)
         user = UserInfo.query.get(user_id)
 
+        #删除项目下的所有证书
+        certificates=Certificate.query.filter(Certificate.project_id==pid).all()
+        for certificate in certificates:
+            db.session.delete(certificate)
+            db.session.commit()
+
+        #删除项目下的所有届次
+        sessionns=Session.query.filter(Session.project_id==pid).all()
+        for sessionn in sessionns:
+            user.sessions.remove(sessionn)
+            db.session.delete(sessionn)
+            db.session.commit()
+
+        #解除项目和用户的关系
         user.projects.remove(project)
         db.session.delete(project)
         db.session.commit()
