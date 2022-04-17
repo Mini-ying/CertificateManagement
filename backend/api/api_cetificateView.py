@@ -223,7 +223,7 @@ class CertificateApi(Resource):
         return {'re_code': RET.OK, 'msg': '删除成功', 'certificates': marshal(certificates, certificate_fields)}
 
 #导出单个证书
-class ExportSingleCertificate(Resource):
+class ExportCertificate(Resource):
     @is_login
     def post(self):
         user_id = g.user.user_id
@@ -298,6 +298,6 @@ class ImportCertificates(Resource):
 
 api.add_resource(CertificateListApi, '/certificateList')
 api.add_resource(CertificateApi, '/certificate')
-api.add_resource(ExportSingleCertificate, '/exportSingleCertificate')
+api.add_resource(ExportCertificate, '/exportCertificate')
 api.add_resource(ImportCertificates,'/importCertificates')
 # api.add_resource(ExportCertificates, '/export_certificates')

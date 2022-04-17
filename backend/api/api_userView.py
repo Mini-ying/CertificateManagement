@@ -41,11 +41,11 @@ class UserLogin(Resource):
         password=args.get('password')
 
         # 判断用户名和密码的是否填写
-        if not all([user_id, password]):
-            return jsonify(re_code=RET.PARAMERR, msg="用户名或密码未填写")
-        # 检查账号和密码是否一致
-        # user = UserInfo.query.filter_by(user_id=userid).first()
-        # flag = check_password_hash(user.password, password)
+        if not user_id:
+            return jsonify(re_code=RET.PARAMERR, msg="用户账号未填写")
+        if not password:
+            return jsonify(re_code=RET.PARAMERR, msg="密码未填写")
+
         user = UserInfo.query.filter_by(user_id=user_id, password=password).first()
         # 如果检查密码一致,则登录成功
         if user:

@@ -80,7 +80,7 @@ class AdminCenter(Resource):
         if check_id:
             return jsonify(re_coder=RET.DATAEXIST, msg="用户id不能重复，请修改！")
 
-        #验证用户账号是否唯一
+        #验证用户名是否唯一
         check_name=UserInfo.query.filter(UserInfo.username==username).first()
         if check_name:
             return jsonify(re_coder=RET.DATAEXIST, msg="用户名不能重复，请修改！")
@@ -109,22 +109,23 @@ class AdminCenter(Resource):
         user_id = args.get('user_id')
         user=UserInfo.query.get(user_id)
 
+        # 删除该用户的证书信息
+        certificates = Certificate.query.filter(Certificate.user_id == user_id).all()
+        for certificate in certificates:
+            db.session.delete(certificate)
+
+        # 删除该用户的届次信息
+        sessionns = Session.query.filter(
+            and_(Session.session_id == User_sessions.session_id, User_sessions.user_id == user_id)).all()
+        for sessionn in sessionns:
+            sessionn.users.remove(user)
+            db.session.delete(sessionn)
+
         #删除该用户的项目信息
         projects=Project.query.filter(and_(Project.project_id==User_projects.project_id,User_projects.user_id==user_id)).all()
         for project in projects:
             project.users.remove(user)
             db.session.delete(project)
-
-        #删除该用户的届次信息
-        sessionns=Session.query.filter(and_(Session.session_id==User_sessions.session_id,User_sessions.user_id==user_id)).all()
-        for sessionn in sessionns:
-            sessionn.users.remove(user)
-            db.session.delete(sessionn)
-
-        #删除该用户的证书信息
-        certificates=Certificate.query.filter(Certificate.user_id==user_id).all()
-        for certificate in certificates:
-            db.session.delete(certificate)
 
         db.session.delete(user)
         db.session.commit()
