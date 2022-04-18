@@ -51,7 +51,7 @@ class SessionListApi(Resource):
         if sessions:
             return {'re_code': RET.OK, 'msg': '查询成功', 'sessions': marshal(sessions, session_fields)}
         else:
-            return {'msg':'当前项目暂无届次信息'}
+            return {'msg':'当前届次暂无届次信息'}
 
 
 class SessionApi(Resource):

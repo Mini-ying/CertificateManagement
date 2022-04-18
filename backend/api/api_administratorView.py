@@ -54,17 +54,27 @@ class AdminCenter(Resource):
         #根据用户名搜索
         if type=='username':
             users=UserInfo.query.filter(UserInfo.username.like('%'+info+'%')).all()
-            return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            if users:
+                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            else:
+                return jsonify(re_code=RET.NODATA, msg="用户不存在")
+
 
         #根据用户账号搜索
         if type=='user_id':
             users=UserInfo.query.filter(UserInfo.user_id.like('%'+info+'%')).all()
-            return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            if users:
+                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            else:
+                return jsonify(re_code=RET.NODATA, msg="用户不存在")
 
         #根据手机号搜索
         if type=='phone':
             users=UserInfo.query.filter(UserInfo.phone.like('%'+info+'%')).all()
-            return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            if users:
+                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+            else:
+                return jsonify(re_code=RET.NODATA, msg="用户不存在")
 
     #添加用户
     @is_admin
