@@ -98,7 +98,7 @@ class ProjectApi(Resource):
         return {'re_code':RET.OK, 'msg':'添加成功', 'projects':marshal(projects,project_fields)}
 
     @is_login
-    def patch(self): #编辑项目
+    def put(self): #编辑项目
         args=update_parser.parse_args()
         # 获取需要修改的项目
         p_id=args.get('project_id')

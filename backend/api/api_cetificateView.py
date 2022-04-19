@@ -161,7 +161,7 @@ class CertificateApi(Resource):
         return {'re_code': RET.OK, 'msg': '添加成功', 'certificates': marshal(certificates,certificate_fields)}
 
     @is_login
-    def patch(self): #编辑证书
+    def put(self): #编辑证书
         user_id = g.user.user_id
         args=update_parser.parse_args()
         project_id = args.get('project_id')
@@ -245,8 +245,6 @@ class ImportCertificates(Resource):
     def post(self):
         user_id = g.user.user_id
         args = im_parser.parse_args()
-        project_id=args.get('project_id')
-        session_id=args.get('session_id')
         file=args.get('file')
         f = file.read()
         clinic_file=xlrd.open_workbook(file_contents=f)
@@ -273,11 +271,31 @@ class ImportCertificates(Resource):
                     newC.rank=a[4]
                     newC.giver=a[5]
                     newC.date=a[6]
-                    newC.session_id=session_id
-                    newC.project_id = project_id
+                    newC.session_id=a[7]
+                    newC.project_id = a[8]
                     newC.user_id=user_id
+
+                    # 验证新增证书的项目是否存在
+                    pro = Project.query.filter(
+                        and_(Project.project_id == a[8], Project.project_id == User_projects.project_id,
+                             User_projects.user_id == user_id)).all()
+                    if not pro:
+                        return jsonify(re_coder=RET.NODATA, msg="不存在该项目，请先添加项目！")
+
+                    # 验证新增证书的届次是否存在
+                    sessions = Session.query.filter(and_(Session.session_id == a[7], Session.project_id == a[8],
+                                                         User_sessions.session_id == Session.session_id,
+                                                         User_sessions.user_id == user_id)).all()
+                    if not sessions:
+                        return jsonify(re_code=RET.DBERR, msg="该届次不存在，请先添加新届次！")
+
+                    # 验证证书号是否唯一
+                    c_i = Certificate.query.filter(Certificate.certificate_id == a[0]).first()
+                    if c_i:
+                        return jsonify(re_code=RET.DATAEXIST, msg="证书编号不能重复，请修改！")
                     db.session.add(newC)
                     db.session.commit()
+        return {'re_code': RET.OK, 'msg': '导入成功'}
 
 #批量导出证书
 # class ExportCertificates(Resource):

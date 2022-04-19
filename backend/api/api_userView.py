@@ -83,7 +83,7 @@ class UserCenter(Resource):
 
     # 用户修改个人信息
     @is_login
-    def patch(self):
+    def put(self):
         args=edit_parser.parse_args()
         username=args.get('username')
         password=args.get('password')

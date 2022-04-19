@@ -130,7 +130,7 @@ class SessionApi(Resource):
         return {'re_code':RET.OK, 'msg':'添加成功', 'sessions':marshal(sessions,session_fields)}
 
     @is_login
-    def patch(self): #编辑项目
+    def put(self): #编辑项目
         args=update_parser.parse_args()
         # 获取需要修改的项目
         user_id = g.user.user_id
