@@ -17,13 +17,13 @@
         <el-form  :inline="true" :model="project_SelectForm" ref="project_SelectForm" size="small"  label-width="140px"
         >
           <el-form-item label="输入搜索：">
-            <select v-model="project_SelectForm.selected" class="select1">
+            <select v-model="project_SelectForm.type" class="select1">
               <option disabled value="">请选择</option>
               <option value="project_id">项目ID</option>
               <option value="project_name">项目名称</option>
             </select>
             <el-input
-              v-model="project_SelectForm.selected_value"
+              v-model="project_SelectForm.info"
               class="input-width"
             ></el-input>
           </el-form-item>
@@ -33,7 +33,8 @@
     <el-card class="operate-container" shadow="never">
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
-      <el-button type="primary" class="button1" @click="preview">添加项目</el-button>
+      <el-button type="primary" class="button1" @click="preview" size="small">添加项目</el-button>
+      <!-- 添加项目的弹窗 -->
       <el-dialog title="添加项目" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
         <div id="pdfDom">
           <div class="proBox">
@@ -56,10 +57,32 @@
           <el-button @click="project_sumbit()">提交</el-button>
         </span>
       </el-dialog>
+      <!-- 编辑项目的弹窗 -->
+      <el-dialog title="编辑项目" :visible.sync="dialogVisible1" width="60%" :before-close="handleClose1">
+        <div id="pdfDom">
+          <div class="proBox">
+            <div class="chapter" v-show="isShow">
+              <el-form :model="project_editForm" ref="project_editForm">
+              <div class="layer03">
+                <span style="margin-right: 25px">项目ID :</span>{{project_editForm.project_id}}
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 25px">项目名称 :</span>
+                <input type="text" v-model=" project_editForm.project_name" maxlength="20"/>
+              </div>
+              </el-form>
+            </div>
+          </div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible1 = false">取 消</el-button>
+          <el-button @click="project_edit()">提交</el-button>
+        </span>
+      </el-dialog>
     </el-card>
     <!-- 列表 -->
    <el-table
-    :data="Project"
+    :data="Projectlist"
     style="width: 100%"
     max-height="320">
     <el-table-column
@@ -81,7 +104,10 @@
         <el-button  @click.native.prevent="check_info(scope.row.project_id, scope.row.project_name)"  type="text"  size="small">
           查看详情
         </el-button>
-        <el-button  @click.native.prevent="deleteRow(scope.$index, Project)"  type="text"  size="small">
+        <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"  type="text"  size="small">
+          编辑
+        </el-button>
+        <el-button  @click.native.prevent="deleteRow(scope.$index,scope.row)"  type="text"  size="small">
           删除
         </el-button>
       </template>
@@ -96,85 +122,89 @@ export default {
   // inject:["reload"],
   data() {
     return {
-      Project:  [{
-          project_id: '111',
-          project_name: '奥数竞赛',
-        }, {
-          project_id: '222',
-          project_name: '外研杯竞赛',
-        }, {
-          project_id: '333',
-          project_name: '大学生体育竞赛',
-        }, {
-          project_id: '888',
-          project_name: '大数据杯',
-        }, {
-          project_id: '999',
-          project_name: '校长杯',
-        }],
-      // 用户id
-      UserInfo: {
-        id: "",
-      },
-      //搜索的类别和关键字
+      //项目数据列表
+      Projectlist:[],
+
+      //前端测试用户项目数据列表
+      // Projectlist:  [{
+      //     project_id: '111',
+      //     project_name: '奥数竞赛',
+      //   }, {
+      //     project_id: '222',
+      //     project_name: '外研杯竞赛',
+      //   }, {
+      //     project_id: '333',
+      //     project_name: '大学生体育竞赛',
+      //   }, {
+      //     project_id: '888',
+      //     project_name: '大数据杯',
+      //   }, {
+      //     project_id: '999',
+      //     project_name: '校长杯',
+      //   }],
+      
+      //查询的类别和关键字
       project_SelectForm: {
-        selected: "",
-        selected_value: "",
+        type: "",
+        info: "",
       },
       //要添加的项目id和项目名字
       project_addForm:{
         project_id: "",
         project_name: "",
       },
-      check_id: "",
-      //搜索选择的类别
+      //要编辑的项目id和项目名字
+      project_editForm:{
+        project_id: "",
+        project_name: "",
+      },
+      //添加框的标志值
       dialogVisible: false,
-      pageData: null, //接收html格式代码
-      htmlTitle: "添加项目",
+      //编辑框的标志值
+      dialogVisible1: false,
       isShow: true,
-      isCanvas: false,
     };
   },
   async mounted() {
-    // 获取datas
-    // this.UserInfo.id = this.$route.query.id;
+    this.ProjectlistGet();
   },
   methods: {
-    
-    // 得到数列
-    // getdata(){
-    //   axios
-    //     .get("http://127.0.0.1:8000/project")
-    //     .then(function(project_id,project_name) {
-    //       console.log(project_id,project_name);
-    //       this.Project.project_id=project_id;
-    //       this.Project.project_name=project_name;
-    //     });
-    // },
-    
-    // 通过关键词搜索待定
-    projectSearch() {
-      this.$refs.project_SelectForm.validate((valid) => {
-        if(valid){
-          this.postRequest('http://127.0.0.1:5000/project',this.project_SelectForm).then(resp=>{
-            alert(JSON.stringify(resp));
-            // alert(JSON.stringify(this.project_SelectForm));
-            if(resp){
-              //返回搜索结果
-              alert("搜索成功")
-            }
-          })
-        }else{
-          this.$message.error('无该搜索结果');
-          return false;
+    //获取项目数据
+    ProjectlistGet(){
+      this.getRequest('http://127.0.0.1:5000/projectList').then(resp=>{
+        if(resp){
+          this.Projectlist=resp.projects;
         }
       })
     },
-    // 弹窗关闭
+    // 查询项目
+    projectSearch() {
+      this.$refs.project_SelectForm.validate((valid) => {
+        if(valid){
+          this.getRequest('http://127.0.0.1:5000/project',this.project_SelectForm).then(resp=>{
+            // alert(JSON.stringify(resp));
+            if(resp.re_code=="0"){
+              //返回搜索结果
+              //刷新数据列表
+              this.Projectlist=resp.projects
+            }
+            else{
+                this.$message.error('无该搜索结果');
+                return false;
+             }
+          })
+        }
+      })
+    },
+    // 添加弹窗关闭
     handleClose() {
       this.dialogVisible = false;
     },
-    // 弹窗显示
+    // 编辑弹窗关闭
+    handleClose1() {
+      this.dialogVisible1 = false;
+    },
+    // 添加弹窗显示
     preview() {
       this.dialogVisible = true;
     },
@@ -183,10 +213,15 @@ export default {
       this.$refs.project_addForm.validate((valid) => {
         if(valid){
           this.postRequest('http://127.0.0.1:5000/project',this.project_addForm).then(resp=>{
-            alert(JSON.stringify(resp));
-            // alert(JSON.stringify(this.loginForm));
             if(resp){
               alert("添加成功")
+              //刷新数据列表
+              this.ProjectlistGet();
+              //弹窗的表单变为空值
+              this.project_addForm.project_id="";
+              this.project_addForm.project_name="";
+              //关闭弹窗
+              this.handleClose();
             }
           })
         }else{
@@ -195,17 +230,53 @@ export default {
         }
       })
     },
-    // 删除项目
-    deleteRow(index, rows) {
-        rows.splice(index, 1);
-    },
-    //查看该项目
+    //查看该项目，跳转到届次页面
     check_info(val1, val2) {
       this.$router.push({
-        path: "/pro_cert:id,project_id,project_name",
-        query: { id: this.UserInfo.id, project_id: val1, project_name: val2 },
+        path: "/sessions:project_id,project_name",
+        query: { project_id: val1, project_name: val2 },
       });
-      // ?uid(val);
+    },
+    //编辑项目按钮
+    edit_info(index, data) {
+      this.project_editForm=data;
+      this.dialogVisible1 = true;
+    },
+     //编辑项目提交
+    project_edit(){
+      this.putequest('http://127.0.0.1:5000/project',this.project_editForm).then(resp=>{
+        if(resp){
+          //刷新数据列表
+          this.ProjectlistGet();
+          //关闭弹窗
+          this.handleClose1();
+        }
+      })
+    },
+    // 删除项目
+    deleteRow(index, data) {
+        // rows.splice(index, 1); //前端删除代码
+        this.$confirm('此操作将永久删除['+data.project_name+']项目, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.deleteRequest('http://127.0.0.1:5000/project',data.project_id).then(resp=>{
+            if(resp){
+              this.$message({
+              type: 'success',
+              message: '删除成功!'
+              });
+              //刷新数据列表
+              this.ProjectlistGet();
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
     },
   },
 };

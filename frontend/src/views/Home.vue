@@ -5,15 +5,14 @@
         <!-- <my-header></my-header> -->
         <!-- 页面头部信息 -->
         <div class="header">
-          <div class="header-icon" @click="expand">
+          <div class="header-icon" >
             <span class="icon"></span>
             <div>数字证书管理系统</div>
           </div>
           <div class="header-tool" id="user">
             <el-dropdown>
-              <!-- <router-link :to="{ path: '/information:id',query: {id: this.UserInfo.id} }"> -->
               <span class="tool-one" @click="info">
-                  Hello，{{UserInfo.username}}</span>
+                  Hello，{{this.UserInfo.user_id}}</span>
                   <!-- </router-link> -->
               <!-- 鼠标移到名字的位置可以选择退出系统 -->
               <el-dropdown-menu slot="dropdown">
@@ -48,22 +47,15 @@
 </template>
 
 <script>
-// import ComAside from "@/components/ComAside";
-// import myHeader from '@/components/header'
 export default {
   name: "Home",
   components: {
-    // comAside: ComAside,
-    // myHeader
   },
   data() {
     return {
       datas: [],
       UserInfo: {
-        id: "",
-        password: "",
-        username: "李赫海",
-        phone: "",
+        user_id: "",
       },
       index1: 0, //设置默认index值
       show: false, //隐藏提示框
@@ -92,14 +84,23 @@ export default {
       return import("@/utils/datas.json");
     };
     this.datas = JSON.parse(JSON.stringify(await datas())).default;
-    this.UserInfo.id = this.$route.query.id;
-    // this.show_hide();
+    this.UserInfo.user_id = window.sessionStorage.getItem('user_id');
   },
   // inject:["reload"],
   methods: {
     //菜单栏选择路由跳转
     menuClick(index){
-      this.$router.push(index);
+      //跳转后台需要判断权限
+      if(index=="/backstage"){
+        let role=window.sessionStorage.getItem('role');
+        if(role=="administrator"){
+          this.$router.push(index);
+        }else{
+          alert("您没有进入后台管理的权限！！！")
+        }
+      }else{
+        this.$router.push(index);
+      }
     },
     //隐藏后台管理
     // show_hide(){
@@ -107,9 +108,17 @@ export default {
     //     this.hide=false;
     //   }
     // },
+    //进入个人信息页面
+    info(){
+      this.$router.push('/information');
+    },
     //退出系统
     go(){
-      this.$router.push({ path: '/'})
+      this.deleteRequest('http://127.0.0.1:5000/login',this.UserInfo.user_id).then(resp=>{
+        if(resp){
+          this.$router.replace({ path: '/'});
+        }
+      }) 
     },
   },
 };

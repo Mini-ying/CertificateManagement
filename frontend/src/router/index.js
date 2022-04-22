@@ -14,7 +14,7 @@ const routes = [
     component: () => import('@/views/login'), 
   },
   {
-    path: '/home:id',
+    path: '/home',
     name: 'Home',
     component: Home,
     children: [
@@ -30,29 +30,23 @@ const routes = [
         name: 'Project',
         component: () => import('@/views/project')
       },
-      // {
-      //   // 项目-届次页面
-      //   path: '/sessions:id',
-      //   name: 'Sessions',
-      //   component: () => import('@/views/sessions')
-      // },
       {
-        // 项目-证书页面
-        path: '/pro_cert:id,project_id,project_name',
-        name: 'Pro_cert',
-        component: () => import('@/views/pro_cert')
+        // 项目-届次页面
+        path: '/sessions:project_id,project_name',
+        name: 'Sessions',
+        component: () => import('@/views/sessions')
+      },
+      {
+        // 届次-证书页面
+        path: '/session-certificate:session_id,number',
+        name: 'Session-certificate',
+        component: () => import('@/views/session-certificate')
       },
       {
         // 证书管理详情页
         path: '/certificate',
         name: 'Certificate',
         component: () => import('@/views/certificate'),
-      },
-      {
-        // 证书添加
-        path: '/addcert:id,project_id,project_name',
-        name: 'Addcert',
-        component: () => import('@/views/addcert'),
       },
       {
         // 自定义证书

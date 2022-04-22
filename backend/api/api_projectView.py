@@ -17,20 +17,20 @@ project_fields={
 
 #添加的传入
 add_parser=reqparse.RequestParser()
-add_parser.add_argument('project_id',type=str,required=True,help='必须填写project_id')
+add_parser.add_argument('project_id',type=str,required=True,help='必须填写project_id',location='form')
 add_parser.add_argument('project_name',type=str,required=True,help='必须填写project_name',location='form')
 
 #查询的传入
 search_parser=reqparse.RequestParser()
-search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location='form')
-search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location='form')
+search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location=['form','args'])
+search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location=['form','args'])
 
 #修改的传入
 update_parser=add_parser.copy()
 
 #删除的传入
 delete_parser=reqparse.RequestParser()
-delete_parser.add_argument('project_id',type=str,required=True,help='必须填写要删除的project_id')
+delete_parser.add_argument('project_id',type=str,required=True,help='必须填写要删除的project_id',location=['form','args'])
 
 
 class ProjectListApi(Resource):
@@ -82,9 +82,9 @@ class ProjectApi(Resource):
 
         # 判断要添加的信息是否存在
         if p_i:
-            return jsonify(re_coder=RET.DATAEXIST, msg="项目id不能重复，请修改！")
+            return jsonify(re_code=RET.DATAEXIST, msg="项目id不能重复，请修改！")
         if p_n:
-            return jsonify(re_coder=RET.DATAEXIST, msg="项目名不能重复，请修改！")
+            return jsonify(re_code=RET.DATAEXIST, msg="项目名不能重复，请修改！")
 
         # 保存新增项目信息
         user = UserInfo.query.filter_by(user_id=user_id).first()
@@ -122,6 +122,7 @@ class ProjectApi(Resource):
 
     @is_login
     def delete(self): #删除项目
+        print("删除项目")
         args=delete_parser.parse_args()
         pid = args.get('project_id')
         user_id = g.user.user_id

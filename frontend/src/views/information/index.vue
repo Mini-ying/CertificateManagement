@@ -12,33 +12,33 @@
         <div class="layer01">
           <span style="margin-right: 44px">用 户 ID：</span>
           <!-- 用户输入的id存放在id -->
-          {{UserInfo.id}}
+          <!-- {{UserInfo.user_id}} -->
         </div>
         <!-- 展示用户名 -->
         <div class="layer01">
           <span style="margin-right: 44px">用 户 名：</span>
           <!-- 用户输入的密码存放在suername -->
-          <input type="text" v-model="UserInfo_change.username" maxlength="30" />
+          <input type="text" v-model="UserInfo_edit.username" maxlength="30" />
         </div>
         <div class="layer01">
           <span style="margin-right: 37px">电话号码：</span>
           <!-- 用户输入的密码存放在phone -->
-          <input type="text" v-model="UserInfo_change.phone" maxlength="11" />
+          <input type="text" v-model="UserInfo_edit.phone" maxlength="11" />
         </div>
         <div class="layer01">
            <span style="margin-right: 59px">密 码：  </span>
           <!-- 用户输入的密码存放在password -->
-          <input type="text" v-model="UserInfo_change.password" maxlength="30" />
+          <input type="text" v-model="UserInfo_edit.password" maxlength="30" />
         </div>
         <div class="layer01">
           再次输入密码：
           <!-- 用户输入的密码存放在password -->
-          <input type="text" v-model="UserInfo_change.password_again" maxlength="30" />
+          <input type="text" v-model="UserInfo_edit.password_again" maxlength="30" />
         </div>
       </form>
       <div class="layer2">
         <!-- 点击登录触发事件login（）验证账号密码 -->
-        <button class="change_nav" @click="change">确认修改</button>
+        <button class="change_nav" @click="information_edit">确认修改</button>
         <!-- <router-link to="./homepage">denglu </router-link> -->
       </div>
       </div>
@@ -51,16 +51,15 @@ export default {
   // inject: ["reload"],
   data() {
     return {
-      UserInfo:{
-        id:"",
-        password: "111",
-        username: "李赫海",
-        phone: "13745678910",
+      //前端测试用数据
+      
+      UserInfo: {
+        user_id: "",
       },
-      UserInfo_change:{
-        password: "",
+      UserInfo_edit:{
         username: "",
         phone: "",
+        password: "",
         password_again:"",
       },
       index1: 0, //设置默认index值
@@ -74,59 +73,74 @@ export default {
     },
   },
   mounted (){
-      this.UserInfo.id=this.$route.query.id;
-      this.get();
-      // this.reload();
+      this.UserInfo.user_id = window.sessionStorage.getItem('user_id');
+      this.get_info();
   },
-  inject:["reload"],
+  // inject:["reload"],
   methods: {
-    // 将用户信息存放在新类别UserInfo_change，修改不成功不影响原用户信息
-    get(){
-      this.UserInfo_change.username=this.UserInfo.username;
-      this.UserInfo_change.phone=this.UserInfo.phone;
-      this.UserInfo_change.password=this.UserInfo.password;
-      // this.reload();
+    // 将用户信息存放在新类别UserInfo_edit，修改不成功不影响原用户信息
+    get_info(){
+      this.getRequest('http://127.0.0.1:5000/User',this.UserInfo.user_id).then(resp=>{
+        if(resp){
+          this.UserInfo_edit=resp;
+        }
+      })
     },
-    // 判断用户名和电话号码是否有被修改，若被修改就修改该数据
-    judge(){
-      if(this.UserInfo_change.username!=this.UserInfo.username)
-        {
-          this.UserInfo.username=this.UserInfo_change.username;
+     //编辑个人信息提交
+    information_edit(){
+      this.putequest('http://127.0.0.1:5000/User',this.UserInfo_edit).then(resp=>{
+        if(resp){
+          //刷新数据列表
+          this.get_info();
+          //关闭弹窗
+          this.handleClose1();
+        }else{
+          alert(JSON.stringify(resp));
         }
-        if(this.UserInfo_change.phone!=this.UserInfo.phone)
-        {
-          this.UserInfo.phone=this.UserInfo_change.phone;
-        }
-        alert("个人信息已修改");
+      })
     },
-    // 判断是否需要修改密码
-    change() {
-      // 若再次输入的密码为空值则默认不修改密码
-      if(this.UserInfo_change.password_again=="")
-      {
-        // 如果密码被修改过则弹出消息提示需要再次输入密码
-        if(this.UserInfo_change.password!=this.UserInfo.password)
-        {
-          alert("请再次输入密码");
-        }
-        // 如果密码没被修改过则只需要判断用户名和手机号码
-        else{
-          this.judge();
-        }
-      } 
-      else{
-        // 两次输入的密码一致才可以修改密码
-        if(this.UserInfo_change.password_again==this.UserInfo_change.password)
-        {
-          this.judge();
-          this.UserInfo.password=this.UserInfo_change.password;
-          this.UserInfo_change.password_again="";
-        }
-        else{
-          alert("两次输入的密码不一致，请重新修改");
-        }
-      }
-    },
+
+
+    // // 判断用户名和电话号码是否有被修改，若被修改就修改该数据
+    // judge(){
+    //   if(this.UserInfo_change.username!=this.UserInfo.username)
+    //     {
+    //       this.UserInfo.username=this.UserInfo_change.username;
+    //     }
+    //     if(this.UserInfo_change.phone!=this.UserInfo.phone)
+    //     {
+    //       this.UserInfo.phone=this.UserInfo_change.phone;
+    //     }
+    //     alert("个人信息已修改");
+    // },
+    // // 判断是否需要修改密码
+    // change() {
+    //   // 若再次输入的密码为空值则默认不修改密码
+    //   if(this.UserInfo_change.password_again=="")
+    //   {
+    //     // 如果密码被修改过则弹出消息提示需要再次输入密码
+    //     if(this.UserInfo_change.password!=this.UserInfo.password)
+    //     {
+    //       alert("请再次输入密码");
+    //     }
+    //     // 如果密码没被修改过则只需要判断用户名和手机号码
+    //     else{
+    //       this.judge();
+    //     }
+    //   } 
+    //   else{
+    //     // 两次输入的密码一致才可以修改密码
+    //     if(this.UserInfo_change.password_again==this.UserInfo_change.password)
+    //     {
+    //       this.judge();
+    //       this.UserInfo.password=this.UserInfo_change.password;
+    //       this.UserInfo_change.password_again="";
+    //     }
+    //     else{
+    //       alert("两次输入的密码不一致，请重新修改");
+    //     }
+    //   }
+    // },
   },
 };
 </script>

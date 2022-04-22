@@ -80,23 +80,18 @@
       <div class="show-area">
         <v-stage :config="canvasData.stage" @mousedown="drawLine" ref="stage">
           <v-layer>
+            <v-image
+              @dragend="dragEvent($event, index)"  :config="imgConfig"
+              v-for="(imgConfig, index) in canvasData.imgs"  :key="imgConfig.id"
+            ></v-image>
             <v-text
-              @mousedown="textEditor($event, index)"
-              :config="textConfig"
-              v-for="(textConfig, index) in canvasData.texts"
-              :key="textConfig.id"
+              @mousedown="textEditor($event, index)"  :config="textConfig"
+              v-for="(textConfig, index) in canvasData.texts"  :key="textConfig.id"
             ></v-text>
             <v-path
               :config="lineConfig"
-              v-for="lineConfig in canvasData.lines"
-              :key="lineConfig.id"
+              v-for="lineConfig in canvasData.lines"  :key="lineConfig.id"
             ></v-path>
-            <v-image
-              @dragend="dragEvent($event, index)"
-              :config="imgConfig"
-              v-for="(imgConfig, index) in canvasData.imgs"
-              :key="imgConfig.id"
-            ></v-image>
           </v-layer>
         </v-stage>
       </div>
@@ -212,17 +207,16 @@ export default {
     getChange() {
       let dom = this.$refs.img.files[0];
       let reader = new FileReader();
-
       reader.readAsDataURL(dom);
       reader.onload = (result) => {
         this.src = result.target.result;
       };
     },
+    //画线
     drawLine() {
       if (this.lineFlag) {
         let data = "";
         let position = this.$refs.stage.getNode().getPointerPosition();
-
         this.pathPoints.push(position.x);
         this.pathPoints.push(position.y);
         for (let index = 0; index < this.pathPoints.length; index += 2) {
@@ -234,7 +228,6 @@ export default {
             data += `L${this.pathPoints[index]} ${this.pathPoints[index + 1]} `;
           }
         }
-
         let obj = {
           x: 0,
           y: 0,
@@ -275,7 +268,6 @@ export default {
         image: null,
         draggable: true,
       };
-
       this.canvasData.imgs.push(obj);
     },
     // 添加文本
@@ -294,7 +286,7 @@ export default {
       this.canvasData.texts.push(obj);
       this.textActiveIndex = this.canvasData.texts.length - 1;
     },
-
+    //选择工具
     addElement(num) {
       this.lineFlag = false;
       this.imgFlag = false;
@@ -310,6 +302,7 @@ export default {
         this.imgFlag = true;
       }
     },
+    //画布大小
     changeSize() {
       this.canvasData.stage.width = Number(this.value1);
       this.canvasData.stage.height = Number(this.value2);

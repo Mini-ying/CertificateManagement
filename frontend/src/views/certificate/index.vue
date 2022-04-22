@@ -16,8 +16,9 @@
           <el-form-item label="输入搜索：">
               <select v-model="certificate_SelectForm.selected" class="select1">
                 <option disabled value="">请选择</option>
-                <option value="sessions">届次</option>
-                <option value="certificate_id">证书编号</option>
+                <option value="project_id">项目ID</option>
+                <option value="session_id">届次ID</option>
+                <option value="certificate_id">证书ID</option>
                 <option value="certificate_name">证书名称</option>
                 <option value="winner">获奖者名称</option>
                 <option value="level">证书级别</option>
@@ -32,21 +33,134 @@
     </el-card>
     <el-card class="operate-container" shadow="never">
       <i class="el-icon-tickets"></i>
-      <span>数据列表</span> <el-button class="button1"  @click="add_cert()" size="small"> 添加证书 </el-button>
+      <span>数据列表</span>
+      <el-button type="primary" class="button1" @click="preview" size="small">添加证书</el-button>
+      <el-dialog title="添加证书" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
+            <div class="chapter" v-show="isShow" >
+              <el-form :model="certificate_addForm" ref="certificate_addForm" >
+              <div class="layer03">
+                <span style="margin-right: 25px">项目ID :</span>
+                <input type="text" v-model=" certificate_addForm.project_id" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 41px">届次ID :</span>
+                <input type="text" v-model=" certificate_addForm.session_id" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 27px">证书ID :</span>
+                <input type="text" v-model=" certificate_addForm.certificate_id" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 28px">证书名称 :</span>
+                <input type="text" v-model=" certificate_addForm.certificate_name" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">证书级别 :</span>
+                <input type="text" v-model=" certificate_addForm.level" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">获奖者名字 :</span>
+                <input type="text" v-model=" certificate_addForm.winner" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">证书名次 :</span>
+                <input type="text" v-model=" certificate_addForm.rank" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 28px">获奖日期 :</span>
+                <input type="text" v-model=" certificate_addForm.date" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 16px">颁奖机构 :</span>
+                <input type="text" v-model=" certificate_addForm.giver" maxlength="20"/>
+              </div>
+              </el-form>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="certificate_sumbit()">提交</el-button>
+        </span>
+      </el-dialog>
+      <el-dialog title="编辑证书" :visible.sync="dialogVisible1" width="60%" :before-close="handleClose1">
+            <div class="chapter" v-show="isShow">
+              <el-form :model="certificate_editForm" ref="certificate_editForm">
+              <div class="layer03" style="margin-right: 200px">
+                <span style="margin-right: 29px">证书ID :</span>{{certificate_editForm.certificate_id}}
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 28px">证书名称 :</span>
+                <input type="text" v-model=" certificate_editForm.certificate_name" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">证书级别 :</span>
+                <input type="text" v-model=" certificate_editForm.level" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">获奖者名字 :</span>
+                <input type="text" v-model=" certificate_editForm.winner" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">证书名次 :</span>
+                <input type="text" v-model=" certificate_editForm.rank" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 28px">获奖日期 :</span>
+                <input type="text" v-model=" certificate_editForm.date" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 16px">颁奖机构 :</span>
+                <input type="text" v-model=" certificate_editForm.giver" maxlength="20"/>
+              </div>
+              </el-form>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible1 = false">取 消</el-button>
+          <el-button @click="certificate_sumbit()">提交</el-button>
+        </span>
+      </el-dialog>
     </el-card>
+    <el-dialog title="" :visible.sync="dialogVisible2" width="60%" :before-close="handleClose2" custom-class="cerifi">
+      <el-button @click="download()">下载证书</el-button>
+              <!-- <div id="pdfDom"> -->
+                <div id="dom-to-img-wrapper" v-show="isShow" style="height:725px">
+                  <!-- <canvas> -->
+                    <img src="../../assets/images/certificate_background.png" style="position:absolute;width: 500px;height: 725px;margin-left: 140px;">
+                  <div id="proBox" ref="imageDom">
+                    <p class="tit">获奖证书</p>
+                    <p class="proid"><span>编号：</span> 
+                    <span>{{certificate_show.certificate_id}}</span></p>
+                    <p class="con">
+                    <span class="con-name">{{certificate_show.winner}}</span>
+                    于
+                    “{{certificate_show.certificate_name}}”
+                    荣获{{certificate_show.level}}{{certificate_show.rank}}</p>
+                    <p class="con">特发此证,予以鼓励</p>
+                    <div class="con-unit">
+                       <p>{{certificate_show.giver}}</p>
+                      <p class="time">{{certificate_show.date}}</p>
+                    </div>
+                  </div>
+                  <!-- </canvas> -->
+               <!-- </div> -->
+              </div>
+              <span slot="footer" class="dialog-footer">
+              </span>
+            </el-dialog>
     <el-table
-    :data="Certificate"
+    :data="Certificatelist"
     style="width: 100%"
-    max-height="320"  @selection-change="handleSelectionChange">
-    <el-table-column
-      type="selection"
-      width="55">
-       </el-table-column>
+    max-height="320" >
     <el-table-column
       fixed
-      prop="sessions"
-      label="届次"
-      width="150">
+      prop="project_id"
+      label="项目ID"
+      width="120">
+    </el-table-column>
+    <el-table-column
+      fixed
+      prop="session_id"
+      label="届次ID"
+      width="120">
     </el-table-column>
     <el-table-column
       prop="certificate_id"
@@ -81,48 +195,23 @@
     <el-table-column
       prop="giver"
       label="颁奖机构"
-      width="120">
+      width="180">
     </el-table-column>
     <el-table-column
       fixed="right"
       label="操作"
       width="150">
       <template slot-scope="scope">
-        <el-button  @click.native.prevent="certificate_make(scope.$index, Certificate)"  type="text"  size="small">
-          生成证书
-        </el-button>
-        <el-button  @click.native.prevent="preview(scope.row.sessions,scope.row.certificate_id,scope.row.certificate_name,scope.row.winner,
-            scope.row.level,scope.row.date,scope.row.rank,scope.row.giver)"  type="text"  size="small">
+        <el-button  @click.native.prevent="show(scope.$index,scope.row)"  type="text"  size="small">
           查看证书
         </el-button>
-        <el-dialog title="" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
-              <div id="pdfDom">
-                <div class="chapter" v-show="isShow">
-                  <div class="proBox" ref="imageDom">
-                    <p class="tit">获奖证书</p>
-                    <p class="proid"><span>编号：</span> 
-                    <span>{{cert.certificate_id}}</span></p>
-                    <p class="con">
-                    <span class="con-name">{{cert.winner}}</span>
-                    于<span style="margin: 10px">{{cert.sessions}}</span>
-                    “{{cert.certificate_name}}”
-                    荣获{{cert.level}}{{cert.rank}}</p>
-                    <p class="con">特发此证,予以鼓励</p>
-                    <div class="con-unit">
-                       <p>{{cert.giver}}</p>
-                      <p class="time">{{cert.date}}</p>
-                    </div>
-                  </div>
-               </div>
-              </div>
-              <span slot="footer" class="dialog-footer">
-              <el-button @click="dialogVisible = false">关 闭</el-button>
-              </span>
-            </el-dialog>
-        <el-button  @click.native.prevent="certificate_design(scope.$index, Certificate)"  type="text"  size="small">
+        <el-button  @click.native.prevent="certificate_design(scope.$index, Certificatelist)"  type="text"  size="small">
           自定义证书
         </el-button>
-        <el-button  @click.native.prevent="deleteRow(scope.$index, Certificate)"  type="text"  size="small">
+        <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"  type="text"  size="small">
+          编辑证书
+        </el-button>
+        <el-button  @click.native.prevent="deleteRow(scope.$index,scope.row)"  type="text"  size="small">
           删除
         </el-button>
       </template>
@@ -133,84 +222,77 @@
 </template>
 
 <script>
+import html2canvas from 'html2canvas'
 export default {
   name:'certList',
   // inject:['reload'],
     data() {
       return {
-        Certificate: [
-        {
-          sessions:"第一届", //届次
-          certificate_id:"123", //证书编号
-          certificate_name:"校长杯篮球赛", //证书名称
-          winner:"力大仙", //获奖者名称
-          level:"校级", //证书级别
-          date:"2020.1.1", //获奖日期
-          rank:"第一名", //获奖名次
-          giver:"深圳技术大学", //颁奖机构
-        }, {
-          sessions:"第一届", //届次
-          certificate_id:"234", //证书编号
-          certificate_name:"校长杯英语演讲大赛", //证书名称
-          winner:"小文", //获奖者名称
-          level:"校级", //证书级别
-          date:"2020.1.1", //获奖日期
-          rank:"第二名", //获奖名次
-          giver:"深圳技术大学", //颁奖机构
-        },{
-          sessions:"第二届", //届次
-          certificate_id:"8342690", //证书编号
-          certificate_name:"口语大赛", //证书名称
-          winner:"小明", //获奖者名称
-          level:"校级", //证书级别
-          date:"2020.6.23", //获奖日期
-          rank:"第一名", //获奖名次
-          giver:"深圳技术大学", //颁奖机构
-        },{
-          sessions:"第三十届", //届次
-          certificate_id:"19857", //证书编号
-          certificate_name:"奥数竞赛", //证书名称
-          winner:"小黄", //获奖者名称
-          level:"国家级", //证书级别
-          date:"2021.5.21", //获奖日期
-          rank:"一等奖", //获奖名次
-          giver:"国家奥数竞赛委员会", //颁奖机构
-        },{
-          sessions:"第三十届", //届次
-          certificate_id:"19856", //证书编号
-          certificate_name:"奥数竞赛", //证书名称
-          winner:"陈二二", //获奖者名称
-          level:"国家级", //证书级别
-          date:"2021.5.21", //获奖日期
-          rank:"三等奖", //获奖名次
-          giver:"国家奥数竞赛委员会", //颁奖机构
+        //证书数据列表数据
+        Certificatelist:[],
+
+        //前端测试数据
+      //   Certificatelist: [
+      //   {
+      //     session:"第一届", //届次
+      //     certificate_id:"123", //证书编号
+      //     certificate_name:"校长杯篮球赛", //证书名称
+      //     winner:"力大仙", //获奖者名称
+      //     level:"校级", //证书级别
+      //     date:"2020.1.1", //获奖日期
+      //     rank:"第一名", //获奖名次
+      //     giver:"深圳技术大学", //颁奖机构
+      //   }, {
+      //     session:"第一届", //届次
+      //     certificate_id:"234", //证书编号
+      //     certificate_name:"校长杯英语演讲大赛", //证书名称
+      //     winner:"小文", //获奖者名称
+      //     level:"校级", //证书级别
+      //     date:"2020.1.1", //获奖日期
+      //     rank:"第二名", //获奖名次
+      //     giver:"深圳技术大学", //颁奖机构
+      //   },{
+      //     session:"第二届", //届次
+      //     certificate_id:"8342690", //证书编号
+      //     certificate_name:"口语大赛", //证书名称
+      //     winner:"小明", //获奖者名称
+      //     level:"校级", //证书级别
+      //     date:"2020.6.23", //获奖日期
+      //     rank:"第一名", //获奖名次
+      //     giver:"深圳技术大学", //颁奖机构
+      //   },{
+      //     session:"第三十届", //届次
+      //     certificate_id:"19857", //证书编号
+      //     certificate_name:"奥数竞赛", //证书名称
+      //     winner:"小黄", //获奖者名称
+      //     level:"国家级", //证书级别
+      //     date:"2021.5.21", //获奖日期
+      //     rank:"一等奖", //获奖名次
+      //     giver:"国家奥数竞赛委员会", //颁奖机构
+      //   },{
+      //     session:"第三十届", //届次
+      //     certificate_id:"19856", //证书编号
+      //     certificate_name:"奥数竞赛", //证书名称
+      //     winner:"陈二二", //获奖者名称
+      //     level:"国家级", //证书级别
+      //     date:"2021.5.21", //获奖日期
+      //     rank:"三等奖", //获奖名次
+      //     giver:"国家奥数竞赛委员会", //颁奖机构
+      //   },
+      // ],
+
+        //若从届次传过来，届次的数据
+        Session:{
+          session_id: "",
+          number:"",
+          category:"",
         },
-      ],
-      tableLabel: [
-          {label: '届次', prop: 'sessions'},
-          {label: '证书编号', prop: 'certificate_id'},
-          {label: '证书名称', prop: 'certificate_name'},
-          {label: '获奖者名称', prop: 'winner'},
-          {label: '证书级别', prop: 'level'},
-          {label: '获奖日期', prop: 'date'},
-          {label: '获奖名次', prop: 'rank'},
-          {label: '颁奖机构', prop: 'giver'},
-      ],
-        // 用户名
-        UserInfo: {
-            id: "",
-        },
-        // 项目传过来项目名字
-        // Project:{
-        //   project_id:"",  //项目id
-        //   project_name:"",   //项目名字
-        // },
         certificate_SelectForm:{
           selected:"",
           selected_value:"",
         },
-        cert:{
-          sessions:"", //届次
+        certificate_show:{
+          session:"", //届次
           certificate_id:"", //证书编号
           certificate_name:"", //证书名称
           winner:"", //获奖者名称
@@ -219,54 +301,64 @@ export default {
           rank:"", //获奖名次
           giver:"", //颁奖机构
         },
-         //搜索选择的类别
-        // listQuery:Object.assign({},defaultListQuery),
-        // list:null,
-        // total:null,
-        // listLoading:false,
-        // multipleSelection:[],
-        // operateType:1,
-        dialogVisible: false,
-        pageData: null, //接收html格式代码
-        htmlTitle: "结业证书",
-        isShow: true,
-        isCanvas: false,
+        //证书添加
+        certificate_addForm:{
+          project_id:"",//项目号
+          session_id:"", //届次
+          certificate_id:"", //证书编号
+          certificate_name:"", //证书名称
+          winner:"", //获奖者名称
+          level:"", //证书级别
+          date:"", //获奖日期
+          rank:"", //获奖名次
+          giver:"", //颁奖机构
+        },
+        //证书编辑
+        certificate_editForm:{
+          project_id:"",//项目号
+          session_id:"", //届次
+          certificate_id:"", //证书编号
+          certificate_name:"", //证书名称
+          winner:"", //获奖者名称
+          level:"", //证书级别
+          date:"", //获奖日期
+          rank:"", //获奖名次
+          giver:"", //颁奖机构
+        },
+       //添加框的标志值
+      dialogVisible: false,
+      //编辑框的标志值
+      dialogVisible1: false,
+      //证书的标志值
+      dialogVisible2: false,
+      isShow: true,
       }
     },
-    created(){
-      this.getList();
-    },
     async mounted() {
-    this.UserInfo.id = this.$route.query.id;
-    this.Project.project_id=this.$route.query.project_id;
+    // 获取datas
+    // this.Session.session_id=this.$route.query.session_id;
+    // this.Session.number=this.$route.query.number;
+    this.CertificatelistGet();
   },
     methods:{
-
-      // getdata(){
-      // axios
-      //   .get("http://127.0.0.1:8000/project")
-      //   .then(function(sessions,certificate_id,certificate_name,winner,level,date,rank,giver) {
-      //     this.Certificate.sessions=sessions;
-      //     this.Certificate.certificate_id=certificate_id;
-      //     this.Certificate.certificate_name=certificate_name;
-      //     this.Certificate.winner=winner;
-      //     this.Certificate.level=level;
-      //     this.Certificate.date=date;
-      //     this.Certificate.rank=rank;
-      //     this.Certificate.giver=giver;
-      //   });
-      // },
+      //获取证书数据
+    CertificatelistGet(){
+      this.getRequest('http://127.0.0.1:5000/certificateList').then(resp=>{
+        if(resp){
+          this.CertificateList=resp;
+        }
+      })
+    },
       // 通过关键词搜索
-      certificateSearch(){
-        // 向后台发送数据，得到结果
+    certificateSearch(){
         this.$refs.certificate_SelectForm.validate((valid) => {
         if(valid){
-          this.postRequest('http://127.0.0.1:5000/certificate',this.certificate_SelectForm).then(resp=>{
-            alert(JSON.stringify(resp));
-            // alert(JSON.stringify(this.certificate_SelectForm));
+          this.getRequest('http://127.0.0.1:5000/certificate',this.certificate_SelectForm).then(resp=>{
+            // alert(JSON.stringify(resp));
             if(resp){
               //返回搜索结果
-              alert("搜索成功")
+              //刷新数据列表
+              this.CertificateListGet();
             }
           })
         }else{
@@ -274,46 +366,121 @@ export default {
           return false;
         }
       })
-      },
-      // 弹窗关闭
-      handleClose() {
-        this.dialogVisible = false;
-        // 将数据清零
-        this.cert.sessions="";
-        this.cert.certificate_id="";
-        this.cert.certificate_name="";
-        this.cert.winner="";
-        this.cert.level="";
-        this.cert.date="";
-        this.cert.rank="";
-        this.cert.giver="";
-      },
-      // 弹窗显示
-      preview(sessions,certificate_id,certificate_name,winner,level,date,rank,giver) {
-        this.dialogVisible = true;
-        // 将改行数据传到弹框
-        this.cert.sessions=sessions;
-        this.cert.certificate_id=certificate_id;
-        this.cert.certificate_name=certificate_name;
-        this.cert.winner=winner;
-        this.cert.level=level;
-        this.cert.date=date;
-        this.cert.rank=rank;
-        this.cert.giver=giver;
-      },
-      handleSearchList() {
-        this.listQuery.pageNum = 1;
-        this.getList();
-      },
-      // 添加证书
-      add_cert(){
-        this.$router.push({ path: '/addcert:id,project_id,project_name' ,query: {id:this.UserInfo.id}})
-      },
-      // 删除证书
-      deleteRow(index, rows) {
-        rows.splice(index, 1);
-      },
+    },
+    //添加 弹窗关闭
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    // 编辑弹窗关闭
+    handleClose1() {
+      this.dialogVisible1 = false;
+    },
+    // 证书弹窗关闭
+    handleClose2() {
+      this.dialogVisible2 = false;
+    },
+    // 添加弹窗显示
+    preview() {
+      this.dialogVisible = true;
+    },
+    // 添加新证书提交
+    certificate_sumbit(){
+      this.$refs.certificate_addForm.validate((valid) => {
+        if(valid){
+          this.postRequest('http://127.0.0.1:5000/certificate',this.certificate_addForm).then(resp=>{
+            if(resp){
+              alert("添加成功")
+              //刷新数据列表
+              this.CertificatelistGet();
+              //弹窗的表单变为空值
+              this.certificate_addForm.project_id="";
+              this.certificate_addForm.session_id="";
+              this.certificate_addForm.certificate_id="";
+              this.certificate_addForm.certificate_name="";
+              this.certificate_addForm.winner="";
+              this.certificate_addForm.level="";
+              this.certificate_addForm.date="";
+              this.certificate_addForm.rank="";
+              this.certificate_addForm.giver="";
+              //关闭弹窗
+              this.handleClose();
+            }
+          })
+        }else{
+          this.$message.error('添加失败');
+          return false;
+        }
+      })
+    },
+    show(index, data){
+      this.certificate_show=data;
+      this.dialogVisible2 = true;
+    },
+    //编辑证书按钮
+    edit_info(index, data) {
+      this.certificate_editForm=data;
+      this.dialogVisible1 = true;
+    },
+     //编辑证书提交
+    certificate_edit(){
+      this.putequest('http://127.0.0.1:5000/certificate',this.certificate_editForm).then(resp=>{
+        if(resp){
+          //刷新数据列表
+          this.CertificatelistGet();
+          //关闭弹窗
+          this.handleClose1();
+        }
+      })
+    },
+    // 删除项目
+    deleteRow(index, data) {
+        // rows.splice(index, 1); //前端删除代码
+        this.$confirm('此操作将永久删除ID为['+data.certificate_id+']的证书, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.deleteRequest('http://127.0.0.1:5000/certificate',data.certificate_id).then(resp=>{
+            if(resp){
+              this.$message({
+              type: 'success',
+              message: '删除成功!'
+              });
+              //刷新数据列表
+              this.CertificatelistGet();
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+    },
+    //下载证书
+    download(){
+      let domName = 'dom-to-img-wrapper'
+      let imageDom = document.getElementById(domName)
+      html2canvas(imageDom, {
+        width: document.getElementById(domName).offsetWidth,  // canvas画板的宽度 一般都是要保存的那个dom的宽度
+        height: document.getElementById(domName).offsetHeight,  // canvas画板的高度  同上
+        scale: 1
+      }).then((canvas) => {
+        let base64Url = canvas.toDataURL('image/png', 1);
+        this.fileDownload(base64Url)
+      })
+    },
+    fileDownload(downloadUrl) {
+      let a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = downloadUrl;
+      a.download = '证书.png';
+      // 触发点击-然后移除
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
+  }
 }
 </script>
 
@@ -345,6 +512,7 @@ export default {
     background-color: #0668bc;
     color:white;
     border-radius: 5px;
+    border-color:#0668bc;
   }
   .table_data{
     border: 1px solid #eff6fe;
@@ -374,8 +542,8 @@ export default {
         {
             background: #eff6fe;
         }
-        .proBox {
-  background: url("../../assets/images/certificate_background.png") no-repeat;
+        #proBox {
+  // background: url("../../assets/images/certificate_background.png") no-repeat;
   background-size: cover;
   width: 500px;
   height: 725px;
@@ -437,6 +605,26 @@ export default {
   right: 0;
   text-align: center;
 }
-        
+ .layer03 {
+    width:350px;
+    height:40px;
+    float:left;
+    color:#2055b6;
+  }
+  .layer03 input{
+    width:200px;
+    height:23px;
+  }  
+  .el-dialog__body{
+    height:185px;
+    padding:30px 0px 30px 120px;
+  }   
+  .el-dialog__footer{
+    padding:0px 40px 20px;
+  }
+  .cerifi{
+    height:900px;
+    // padding:30px 0px 30px 120px;
+  } 
 }
 </style>

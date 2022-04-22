@@ -9,17 +9,17 @@ import VueKonva from 'vue-konva'
 Vue.prototype.$axios = axios;
 
 import { postRequest } from './api/https'
-// import { putRequest } from './api/https'
-// import { getRequest } from './api/https'
-// import { deleteRequest } from './api/https'
+import { putRequest } from './api/https'
+import { getRequest } from './api/https'
+import { deleteRequest } from './api/https'
 
 Vue.use(ElementUI)
 Vue.use(VueKonva)
 
 Vue.prototype.postRequest=postRequest;
-// Vue.prototype.putRequest=putRequest;
-// Vue.prototype.getRequest=getRequest;
-// Vue.prototype.deleteRequest=deleteRequest;
+Vue.prototype.putRequest=putRequest;
+Vue.prototype.getRequest=getRequest;
+Vue.prototype.deleteRequest=deleteRequest;
 
 Vue.config.productionTip = false
 new Vue({

@@ -24,8 +24,8 @@ user_fields={
 parser=reqparse.RequestParser()
 
 #登录的传入
-parser.add_argument('user_id',type=inputs.regex(r'^[0-9]*$'),required=True,help='账号有非法字符',location=['form','args'])
-parser.add_argument('password',type=str,required=True,help='密码不能为空',location=['form','args'])
+parser.add_argument('user_id',type=inputs.regex(r'^[0-9]*$'),required=True,help='账号有非法字符',location=['form'])
+parser.add_argument('password',type=str,required=True,help='密码不能为空',location=['form'])
 
 #修改用户信息的传入
 edit_parser=reqparse.RequestParser()

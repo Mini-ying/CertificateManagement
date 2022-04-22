@@ -20,8 +20,8 @@ user_fields={
 
 #查找用户的传入
 search_parser=reqparse.RequestParser()
-search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location='form')
-search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location='form')
+search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location=['form','args'])
+search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location=['form','args'])
 
 #添加用户的传入
 add_parser=reqparse.RequestParser()
@@ -32,7 +32,7 @@ add_parser.add_argument('role',type=str,required=True,help='必须填写用户�
 
 #删除用户的传入
 del_parser=reqparse.RequestParser()
-del_parser.add_argument('user_id',type=str,required=True,help='必须传入要删除的user_id',location='form')
+del_parser.add_argument('user_id',type=str,required=True,help='必须传入要删除的user_id',location=['form','args'])
 
 # 查看当前系统已注册的用户
 class UserList(Resource):

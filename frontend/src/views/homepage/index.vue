@@ -6,6 +6,7 @@
     </div>
     <div>
       <p>欢迎使用数字证书系统</p>
+      <img src="../../assets/images/welcome4.jpg" width="500px"/>
     </div>
   </div> 
 </template>

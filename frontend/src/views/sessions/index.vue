@@ -1,55 +1,403 @@
 <template>
-<!-- 项目管理详情页 -->
-  <div class="sessions" >
-    <el-table
-        :data="tableData3"
-        border
-        id="el-table"
-        style="width: 100%">
-        <!-- 动态循环的列表 -->
-        <template  v-for="(item, index) in tableLabel">
-          <el-table-column
-            :key="index"
-            :prop="item.prop"
-            :label="item.label"
-            width="">
-          </el-table-column>
-        </template>
-        <!-- 固定的列：从业人员 -->
-        <el-table-column label="从业人员">
-          <template slot-scope={}>
-            <el-button type="info" >从业人员</el-button>
-            </template>
-        </el-table-column>        
-      </el-table>
+  <!-- 项目管理详情页 -->
+  <div class="project">
+    <div class="title">
+      {{Project.project_name}}项目-届次管理
+    </div>
+    <el-card class="filter-container" shadow="never">
+      <div>
+        <i class="el-icon-search"></i>
+        <span>筛选搜索</span>
+        <!-- 查询搜索按钮，触发查询 -->
+        <el-button style="float:right" type="primary"  @click="sessionSearch()" size="small"  >
+          查询搜索
+        </el-button>
+      </div>
+      <div style="margin-top: 15px">
+        <el-form  :inline="true" :model="session_SelectForm" ref="session_SelectForm" size="small"  label-width="140px"
+        >
+          <el-form-item label="输入搜索：">
+            <select v-model="session_SelectForm.selected" class="select1">
+              <option disabled value="">请选择</option>
+              <option value="project_id">届次ID</option>
+              <option value="project_name">届次</option>
+              <option value="project_name">届次类别</option>
+            </select>
+            <el-input
+              v-model="session_SelectForm.selected_value"
+              class="input-width"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+    </el-card>
+    <el-card class="operate-container" shadow="never">
+      <i class="el-icon-tickets"></i>
+      <span>数据列表</span>
+      <el-button type="primary" class="button1" @click="preview" size="small">添加届次</el-button>
+      <!-- 添加届次的弹窗-->
+      <el-dialog title="添加届次" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
+        <div id="pdfDom">
+          <div class="proBox">
+            <div class="chapter" v-show="isShow">
+              <el-form :model="session_addForm" ref="session_addForm">
+              <div class="layer03">
+                <span style="margin-right: 15px">项目ID :</span>
+                <input type="text" v-model=" session_addForm.project_id" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 29px">届次ID :</span>
+                <input type="text" v-model=" session_addForm.session_id" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 25px">届 次 :</span>
+                <input type="text" v-model=" session_addForm.number" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">届次类别 :</span>
+                <input type="text" v-model=" session_addForm.category" maxlength="20"/>
+              </div>
+              </el-form>
+            </div>
+          </div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="session_sumbit()">提交</el-button>
+        </span>
+      </el-dialog>
+      <!-- 编辑届次的弹窗 -->
+      <el-dialog title="编辑届次" :visible.sync="dialogVisible1" width="60%" :before-close="handleClose1">
+        <div id="pdfDom">
+          <div class="proBox">
+            <div class="chapter" v-show="isShow">
+              <el-form :model="session_editForm" ref="session_editForm">
+              <div class="layer03" style="margin-right: 200px">
+                <span style="margin-right: 29px">届次ID :</span>{{session_editForm.session_id}}
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 25px">届 次 :</span>
+                <input type="text" v-model=" session_editForm.number" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">届次类别 :</span>
+                <input type="text" v-model=" session_editForm.category" maxlength="20"/>
+              </div>
+              </el-form>
+            </div>
+          </div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible1 = false">取 消</el-button>
+          <el-button @click="session_sumbit()">提交</el-button>
+        </span>
+      </el-dialog>
+    </el-card>
+    <!-- 列表 -->
+   <el-table
+    :data="Sessionlist"
+    style="width: 100%"
+    max-height="320">
+    <el-table-column
+      fixed
+      prop="project_id"
+      label="项目ID"
+      width="250">
+    </el-table-column>
+    <el-table-column
+      fixed
+      prop="session_id"
+      label="届次ID"
+      width="250">
+    </el-table-column>
+    <el-table-column
+      prop="number"
+      label="届次"
+      width="200">
+    </el-table-column>
+    <el-table-column
+      prop="category"
+      label="届次类别"
+      width="200">
+    </el-table-column>
+    <el-table-column
+      fixed="right"
+      label="操作"
+      width="300">
+      <template slot-scope="scope">
+        <el-button  @click.native.prevent="check_info(scope.row.session_id,scope.row.number)"  type="text"  size="small">
+          查看详情
+        </el-button>
+        <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"  type="text"  size="small">
+          编辑
+        </el-button>
+        <el-button  @click.native.prevent="deleteRow(scope.$index,scope.row)"  type="text"  size="small">
+          删除
+        </el-button>
+      </template>
+    </el-table-column>
+  </el-table>
   </div>
 </template>
 
 <script>
 export default {
   name: "dataList",
+  // inject:["reload"],
   data() {
     return {
-      tableData3: [
-        {
-          id: '1',
-          number: '112',
-          a: '这是个数据',
-          b: '这是个数据'
-        }, {
-          id: '2',
-          number: '113',
-          a: '这是个数据',
-          b: '这是个数据'
-        }
-      ],
-      tableLabel: [
-          {label: '序号', prop: 'id'},
-          {label: '场所编号', prop: 'number'},
-          {label: '表头3', prop: 'a'},
-          {label: '表头4', prop: 'b'},
-      ]
-    }
+      //数据列表数据
+      Sessionlist:[],
+
+      //前端测试用
+      // Sessionlist:  [{
+      //     session_id: '111',
+      //     number: '第一届',
+      //     category:'123',
+      //   }, {
+      //     session_id: '112',
+      //     number: '第二届',
+      //     category:'123',
+      //   }, {
+      //     session_id: '113',
+      //     number: '第三届',
+      //     category:'123',
+      //   }, {
+      //     session_id: '114',
+      //     number: '第四届',
+      //     category:'123',
+      //   }, {
+      //     session_id: '115',
+      //     number: '第五届',
+      //     category:'123',
+      //   }],
+
+      //项目信息
+      Project:{
+        project_id:"",
+        project_name:"",
+      },
+      //搜索的类别和关键字
+      session_SelectForm: {
+        selected: "",
+        selected_value: "",
+      },
+      //要添加的项目id和项目名字
+      session_addForm:{
+        project_id: "",
+        session_id: "",
+        number:"",
+        category:"",
+      },
+      //要编辑的项目id和项目名字
+      session_editForm:{
+        session_id: "",
+        number:"",
+        category:"",
+      },
+      //添加框的标志值
+      dialogVisible: false,
+      //编辑框的标志值
+      dialogVisible1: false,
+      isShow: true,
+    };
   },
-}
+  async mounted() {
+    // 获取datas
+    this.Project.project_id = this.$route.query.project_id;
+    this.Project.project_name = this.$route.query.project_name;
+    this.SessionlistGet();
+  },
+  methods: {
+     //获取届次数据
+    SessionlistGet(){
+      this.getRequest('http://127.0.0.1:5000/sessionList',this.Project.project_id).then(resp=>{
+        if(resp){
+          this.Sessionlist=resp;
+        }
+      })
+    },
+    // 通过关键词搜索待定
+    sessionSearch() {
+      this.$refs.session_SelectForm.validate((valid) => {
+        if(valid){
+          this.getRequest('http://127.0.0.1:5000/session',this.session_SelectForm).then(resp=>{
+            // alert(JSON.stringify(resp));
+            if(resp){
+              //返回搜索结果
+              //刷新数据列表
+              this.SessionlistGet();
+            }
+          })
+        }else{
+          this.$message.error('无该搜索结果');
+          return false;
+        }
+      })
+    },
+    // 添加弹窗关闭
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    // 编辑弹窗关闭
+    handleClose1() {
+      this.dialogVisible1 = false;
+    },
+    // 添加弹窗显示
+    preview() {
+      this.dialogVisible = true;
+    },
+    // 添加新届次提交
+    session_sumbit(){
+      this.$refs.session_addForm.validate((valid) => {
+        if(valid){
+          this.postRequest('http://127.0.0.1:5000/session',this.session_addForm).then(resp=>{
+            if(resp){
+              alert("添加成功")
+              //刷新数据列表
+              this.SessionlistGet();
+              //弹窗的表单变为空值
+              this.session_addForm.project_id="";
+              this.session_addForm.session_id="";
+              this.session_addForm.number="";
+              this.session_addForm.category="";
+              //关闭弹窗
+              this.handleClose();
+            }
+          })
+        }else{
+          this.$message.error('添加失败');
+          return false;
+        }
+      })
+    },
+    //查看该届次的证书
+    check_info(val1,val2) {
+      this.$router.push({
+        path: "/session-certificate:session_id,number",
+        query: { session_id: val1, number: val2 },
+      });
+    },
+    //编辑届次按钮
+    edit_info(index, data) {
+      this.session_editForm=data;
+      this.dialogVisible1 = true;
+    },
+     //编辑届次提交
+    session_edit(){
+      this.putequest('http://127.0.0.1:5000/session',this.session_editForm).then(resp=>{
+        if(resp){
+          //刷新数据列表
+          this.SessionlistGet();
+          //关闭弹窗
+          this.handleClose1();
+        }
+      })
+    },
+    //编辑届次
+    deleteRow(index, data) {
+        // rows.splice(index, 1); //前端删除代码
+        this.$confirm('此操作将永久删除['+data.number+']届次, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.deleteRequest('http://127.0.0.1:5000/session',data.session_id).then(resp=>{
+            if(resp){
+              this.$message({
+              type: 'success',
+              message: '删除成功!'
+              });
+              //刷新数据列表
+              this.SessionlistGet();
+            }
+          })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });          
+        });
+    },
+  },
+};
 </script>
+
+<style lang="less">
+.project {
+  .title {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .el-input--small {
+    float: left;
+  }
+  .is-never-shadow {
+    margin-top: 10px;
+  }
+  .el-card__body {
+    padding: 10px 15px;
+  }
+  .el-dialog__footer{
+    padding:0px 40px 20px;
+  }
+  .el-dialog__body{
+    padding:30px 0px 30px 120px;
+
+  }
+  .select1 {
+    height: 25px;
+  }
+  .button1 {
+    float: right;
+    margin: 0 15px 15px 0;
+    background-color: #0668bc;
+    border:#0668bc;
+    color: white;
+    border-radius: 5px;
+  }
+  .el-input__inner {
+    height: 30px;
+    line-height: 30px;
+  }
+  .table_data {
+    border: 1px solid #eff6fe;
+  }
+  table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    text-align: center;
+  }
+  table td,
+  table th {
+    border: 1px solid #cad9ea;
+    color: #666;
+    height: 30px;
+  }
+  table thead th {
+    background-color: #eff6fe;
+    width: 100px;
+  }
+  table tr:nth-child(odd) {
+    background: #fff;
+    height: 50px;
+  }
+  table tr:nth-child(even) {
+    background: #eff6fe;
+    height: 50px;
+  }
+  .layer03 {
+    width:350px;
+    height:40px;
+    float:left;
+    color:#2055b6;
+  }
+  .layer03 input{
+    width:200px;
+    height:23px;
+  }
+  .el-dialog__body{
+    height:70px;
+  }
+}
+</style>

@@ -62,7 +62,7 @@ export const postRequest=(url,params)=>{
   })
 }
 
-//传输json格式的put请求
+//传输json格式的编辑请求
 export const putRequest=(url,params)=>{
   return axios({
     method:'put',
@@ -76,9 +76,9 @@ export const putRequest=(url,params)=>{
 //传输json格式的get请求
 export const getRequest=(url,params)=>{
   return axios({
-    method:'put',
+    method:'get',
     url:url,
-    data:qs.stringify(params),
+    params,
     header:{
       'contentType': "application/x-www-form-urlencoded"
     }
@@ -87,9 +87,9 @@ export const getRequest=(url,params)=>{
 //传输json格式的delete请求
 export const deleteRequest=(url,params)=>{
   return axios({
-    method:'put',
+    method:'delete',
     url:url,
-    data:qs.stringify(params),
+    params:params,
     header:{
       'contentType': "application/x-www-form-urlencoded"
     }

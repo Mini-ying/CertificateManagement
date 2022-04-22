@@ -18,12 +18,12 @@ session_fields={
 
 #显示届次的传入
 parser=reqparse.RequestParser()
-parser.add_argument('project_id',type=str,required=True,help='必须传入项目id',location='form')
+parser.add_argument('project_id',type=str,required=True,help='必须传入项目id',location=['form','args'])
 
 #查询的传入
 search_parser=parser.copy()
-search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location='form')
-search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location='form')
+search_parser.add_argument('type',type=str,required=True,help='必须选择查询类型',location=['form','args'])
+search_parser.add_argument('info',type=str,required=True,help='必须填写查询信息',location=['form','args'])
 
 #添加的传入
 add_parser=parser.copy()
@@ -37,7 +37,7 @@ update_parser=add_parser.copy()
 
 #删除的传入
 delete_parser=parser.copy()
-delete_parser.add_argument('session_id',type=str,required=True,help='必须传入要删除的届次号')
+delete_parser.add_argument('session_id',type=str,required=True,help='必须传入要删除的届次号',location=['form','args'])
 
 
 class SessionListApi(Resource):
