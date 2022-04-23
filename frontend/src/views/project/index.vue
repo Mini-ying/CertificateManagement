@@ -158,6 +158,9 @@ export default {
         project_id: "",
         project_name: "",
       },
+      project_delForm:{
+        project_id:""
+      },
       //添加框的标志值
       dialogVisible: false,
       //编辑框的标志值
@@ -172,9 +175,11 @@ export default {
     //获取项目数据
     ProjectlistGet(){
       this.getRequest('http://127.0.0.1:5000/projectList').then(resp=>{
-        if(resp){
+        if(resp.re_code=="0"){
           this.Projectlist=resp.projects;
-        }
+        }else{
+              alert(resp.msg);
+            }
       })
     },
     // 查询项目
@@ -186,12 +191,12 @@ export default {
             if(resp.re_code=="0"){
               //返回搜索结果
               //刷新数据列表
-              this.Projectlist=resp.projects
+              this.Projectlist=resp.projects;
             }
             else{
-                this.$message.error('无该搜索结果');
-                return false;
-             }
+                  this.$message.error('无该搜索结果');
+                  return false;
+                }
           })
         }
       })
@@ -222,11 +227,11 @@ export default {
               this.project_addForm.project_name="";
               //关闭弹窗
               this.handleClose();
-            }
+            }else{
+                  alert(resp.msg);
+                  return false;
+                }
           })
-        }else{
-          this.$message.error('添加失败');
-          return false;
         }
       })
     },
@@ -244,13 +249,15 @@ export default {
     },
      //编辑项目提交
     project_edit(){
-      this.putequest('http://127.0.0.1:5000/project',this.project_editForm).then(resp=>{
-        if(resp){
+      this.putRequest('http://127.0.0.1:5000/project',this.project_editForm).then(resp=>{
+        if(resp.re_code=="0"){
           //刷新数据列表
           this.ProjectlistGet();
           //关闭弹窗
           this.handleClose1();
-        }
+        }else{
+              alert(resp.msg);
+            }
       })
     },
     // 删除项目
@@ -261,14 +268,18 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.deleteRequest('http://127.0.0.1:5000/project',data.project_id).then(resp=>{
-            if(resp){
+          //传给project_id统一名字（应该可以）
+          this.project_delForm.project_id=data.project_id;
+          this.deleteRequest('http://127.0.0.1:5000/project',this.project_delForm).then(resp=>{
+            if(resp.re_code=="0"){
               this.$message({
               type: 'success',
               message: '删除成功!'
               });
               //刷新数据列表
               this.ProjectlistGet();
+            }else{
+              alert(resp.msg);
             }
           })
         }).catch(() => {
@@ -347,6 +358,12 @@ export default {
 .layer03 input{
   width:200px;
   height:23px;
+  padding: 1px 2px;
+  border-width: 2px;
+  border-style: inset;
+  border-color: -internal-light-dark(rgb(118, 118, 118));
+  
+
 }
 }
 </style>

@@ -17,7 +17,8 @@ api=Api(user_bp)
 user_fields={
     'user_id':fields.String,
     'username':fields.String,
-    'phone':fields.String
+    'phone':fields.String,
+    'role':fields.String
 }
 
 #参数解析

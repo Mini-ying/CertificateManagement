@@ -114,8 +114,9 @@ export default {
     },
     //退出系统
     go(){
-      this.deleteRequest('http://127.0.0.1:5000/login',this.UserInfo.user_id).then(resp=>{
-        if(resp){
+      this.deleteRequest('http://127.0.0.1:5000/logout').then(resp=>{
+        if(resp.re_code=="0"){
+          alert("已退出系统");
           this.$router.replace({ path: '/'});
         }
       }) 

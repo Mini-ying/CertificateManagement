@@ -14,15 +14,15 @@
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="listQuery" size="small" label-width="140px">
           <el-form-item label="输入搜索：">
-              <select v-model="backstage_SelectForm.selected" class="select1">
+              <select v-model="backstage_SelectForm.type" class="select1">
                 <option disabled value="">请选择</option>
                 <option value="user_id">用户ID</option>
-                <option value="uesername">用户名</option>
+                <option value="username">用户名</option>
                 <option value="phone">电话号码</option>
-                <option value="password">密码</option>
+                <!-- <option value="password">密码</option> -->
                 <option value="role">权限</option>
               </select>
-            <el-input v-model="backstage_SelectForm.selected_value" class="input-width" ></el-input>
+            <el-input v-model="backstage_SelectForm.info" class="input-width" ></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -43,16 +43,16 @@
               </div>
               <div class="layer03">
                 <span style="margin-right: 10px">用户名字 :</span>
-                <input type="text" v-model=" backstage_addForm.uesername" maxlength="20"/>
+                <input type="text" v-model=" backstage_addForm.username" maxlength="20"/>
               </div>
               <div class="layer03">
                 <span style="margin-right: 15px">电话号码 :</span>
                 <input type="text" v-model=" backstage_addForm.phone" maxlength="20"/>
               </div>
-              <div class="layer03">
+              <!-- <div class="layer03">
                 <span style="margin-right: 38px">密码 :</span>
                 <input type="text" v-model=" backstage_addForm.password" maxlength="20"/>
-              </div>
+              </div> -->
               <div class="layer03">
                 <span style="margin-right: 15px">用户权限 :</span>
                 <input type="text" v-model=" backstage_addForm.role" maxlength="20"/>
@@ -68,7 +68,7 @@
       </el-dialog>
     </el-card>
     <!-- 编辑用户弹窗 -->
-    <el-dialog title="编辑用户" :visible.sync="dialogVisible1" width="60%" :before-close="handleClose1">
+    <!-- <el-dialog title="编辑用户" :visible.sync="dialogVisible1" width="60%" :before-close="handleClose1">
         <div id="pdfDom">
           <div class="proBox">
             <div class="chapter" v-show="isShow">
@@ -100,7 +100,7 @@
           <el-button @click="dialogVisible1 = false">取 消</el-button>
           <el-button @click="backstage_sumbit()">提交</el-button>
         </span>
-      </el-dialog>
+      </el-dialog> -->
     <!-- 列表 -->
    <el-table
     :data=" Backstagelist"
@@ -137,9 +137,9 @@
       label="操作"
       width="150">
       <template slot-scope="scope">
-        <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"   type="text"  size="small">
+        <!-- <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"   type="text"  size="small">
           编辑
-        </el-button>
+        </el-button> -->
         <el-button  @click.native.prevent="deleteRow(scope.$index,scope.row)"  type="text"  size="small">
           删除
         </el-button>
@@ -182,8 +182,8 @@ export default {
       //   }, 
       // ],
         backstage_SelectForm:{
-          selected:"",
-          selected_value:"",
+          type: "",
+          info: ""
         },
         //添加用户
         backstage_addForm:{
@@ -193,13 +193,9 @@ export default {
           password:"", //密码
           role:"",//权限
         },
-        //编辑用户
-        backstage_editForm:{
-          user_id:"",
-          username:"", //用户名
-          phone:"", //电话号码
-          password:"", //密码
-          role:"",//权限
+        //删除用户
+        backstage_delForm:{
+          user_id:""
         },
         //添加框的标志值
         dialogVisible: false,
@@ -220,24 +216,23 @@ export default {
     //获取用户数据
     BackstagelistGet(){
       this.getRequest('http://127.0.0.1:5000/UserList').then(resp=>{
-        if(resp){
-          this.Backstagelist=resp;
-        }
+        if(resp.re_code=="0"){
+          this.Backstagelist=resp.users;
+        }else{
+              alert(resp.msg);
+              return false;
+            }
       })
     },
     // 查询用户
     backstageSearch() {
-      this.$refs.backstage_SelectForm.validate((valid) => {
-        if(valid){
-          this.getRequest('http://127.0.0.1:5000/project',this.backstage_SelectForm).then(resp=>{
-            // alert(JSON.stringify(resp));
-            if(resp){
+      this.getRequest('http://127.0.0.1:5000/Admin',this.backstage_SelectForm).then(resp=>{
+            if(resp.re_code=="0"){
               //返回搜索结果
               //刷新数据列表
-              this.BackstagelistGet();
+              this.Backstagelist=resp.users;
             }
-          })
-        }else{
+            else{
           this.$message.error('无该搜索结果');
           return false;
         }
@@ -260,7 +255,7 @@ export default {
       this.$refs.backstage_addForm.validate((valid) => {
         if(valid){
           this.postRequest('http://127.0.0.1:5000/Admin',this.backstage_addForm).then(resp=>{
-            if(resp){
+            if(resp.re_code=="0"){
               alert("添加成功")
               //刷新数据列表
               this.BackstagelistGet();
@@ -272,6 +267,9 @@ export default {
               this.backstage_addForm.role="";
               //关闭弹窗
               this.handleClose();
+            }else{
+              alert(resp.msg);
+              return false;
             }
           })
         }else{
@@ -285,17 +283,17 @@ export default {
       this.backstage_editForm=data;
       this.dialogVisible1 = true;
     },
-     //编辑用户提交
-    backstage_edit(){
-      this.putequest('http://127.0.0.1:5000/Admin',this.backstage_editForm).then(resp=>{
-        if(resp){
-          //刷新数据列表
-          this.BackstagelistGet();
-          //关闭弹窗
-          this.handleClose1();
-        }
-      })
-    },
+    //  //编辑用户提交
+    // backstage_edit(){
+    //   this.putequest('http://127.0.0.1:5000/Admin',this.backstage_editForm).then(resp=>{
+    //     if(resp.re_code=="0"){
+    //       //刷新数据列表
+    //       this.BackstagelistGet();
+    //       //关闭弹窗
+    //       this.handleClose1();
+    //     }
+    //   })
+    // },
     // 删除项目
     deleteRow(index, data) {
         // rows.splice(index, 1); //前端删除代码
@@ -304,8 +302,9 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.deleteRequest('http://127.0.0.1:5000/Admin',data.user_id).then(resp=>{
-            if(resp){
+          this.backstage_delForm.user_id=data.user_id;
+          this.deleteRequest('http://127.0.0.1:5000/Admin',this.backstage_delForm).then(resp=>{
+            if(resp.re_code=="0"){
               this.$message({
               type: 'success',
               message: '删除成功!'
@@ -397,6 +396,10 @@ export default {
   .layer03 input{
     width:200px;
     height:23px;
+    padding: 1px 2px;
+    border-width: 2px;
+    border-style: inset;
+    border-color: -internal-light-dark(rgb(118, 118, 118));
   }
   .el-dialog__body{
     height:100px;

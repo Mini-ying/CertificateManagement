@@ -40,7 +40,7 @@ class ProjectListApi(Resource):
         user = UserInfo.query.get(user_id)
         projects = user.projects
 
-        return {'re_code':RET.OK, 'msg':'查询成功','projects':marshal(projects,project_fields)}
+        return {'re_code':RET.OK, 'msg':'显示成功','projects':marshal(projects,project_fields)}
 
 
 class ProjectApi(Resource):
@@ -55,7 +55,7 @@ class ProjectApi(Resource):
             projects=Project.query.filter(and_(Project.project_id.contains(info),Project.project_id==User_projects.project_id,
                                                User_projects.user_id==user_id)).all()
             if projects:
-                return {'re_code':RET.OK, 'msg':'查询成功', 'projects':marshal(projects,project_fields)}
+                return {'re_code':RET.OK, 'msg':'显示成功', 'projects':marshal(projects,project_fields)}
 
             else:
                 return jsonify(re_code=RET.NODATA,msg="项目不存在")

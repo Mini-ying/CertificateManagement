@@ -80,9 +80,11 @@ export default {
   methods: {
     // 将用户信息存放在新类别UserInfo_edit，修改不成功不影响原用户信息
     get_info(){
-      this.getRequest('http://127.0.0.1:5000/User',this.UserInfo.user_id).then(resp=>{
-        if(resp){
-          this.UserInfo_edit=resp;
+      this.getRequest('http://127.0.0.1:5000/User').then(resp=>{
+        if(resp.re_code=="0"){
+          this.UserInfo_edit=resp.users;
+        }else{
+          alert(resp.msg);
         }
       })
     },
@@ -91,7 +93,7 @@ export default {
       this.putequest('http://127.0.0.1:5000/User',this.UserInfo_edit).then(resp=>{
         if(resp){
           //刷新数据列表
-          this.get_info();
+          this.UserInfo_edit=resp.users;
           //关闭弹窗
           this.handleClose1();
         }else{

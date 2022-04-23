@@ -64,8 +64,8 @@ export default {
   data() {
     return {
       loginForm: {
-        user_id: "20183220126",
-        password: "20183220126",
+        user_id: "001",
+        password: "123456",
         // username: "",
         // phone: "",
       },
@@ -86,17 +86,18 @@ export default {
       this.$refs.loginForm.validate((valid) => {
         if(valid){
           this.postRequest('http://127.0.0.1:5000/login',this.loginForm).then(resp=>{
-            alert(JSON.stringify(resp));
-            if(resp){
+            if(resp.re_code=="0"){
               //存贮用户token
               const tokenStr = resp.token;
               window.sessionStorage.setItem('tokenStr',tokenStr);
               //存用户id
               window.sessionStorage.setItem('user_id',this.loginForm.user_id);
               //存用户权限
-              window.sessionStorage.setItem('role',resp.role);
+              window.sessionStorage.setItem('role',resp.user.role);
               //路由跳转到主页面
               this.$router.replace({path:'/home'});
+            }else{
+              alert(resp.msg);
             }
           })
         }else{

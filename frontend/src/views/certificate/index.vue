@@ -14,19 +14,19 @@
       <div style="margin-top: 15px">
         <el-form :inline="true" :model="certificate_SelectForm" ref="certificate_SelectForm" size="small" label-width="140px">
           <el-form-item label="输入搜索：">
-              <select v-model="certificate_SelectForm.selected" class="select1">
+              <select v-model="certificate_SelectForm.type" class="select1">
                 <option disabled value="">请选择</option>
                 <option value="project_id">项目ID</option>
                 <option value="session_id">届次ID</option>
                 <option value="certificate_id">证书ID</option>
                 <option value="certificate_name">证书名称</option>
                 <option value="winner">获奖者名称</option>
-                <option value="level">证书级别</option>
+                <!-- <option value="level">证书级别</option>
                 <option value="datt">获奖日期</option>
                 <option value="rank">获奖名次</option>
-                <option value="giver">颁奖机构</option>
+                <option value="giver">颁奖机构</option> -->
               </select>
-            <el-input v-model="certificate_SelectForm.selected_value" class="input-width" ></el-input>
+            <el-input v-model="certificate_SelectForm.info" class="input-width" ></el-input>
           </el-form-item>
         </el-form>
       </div>
@@ -115,7 +115,7 @@
         </div>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible1 = false">取 消</el-button>
-          <el-button @click="certificate_sumbit()">提交</el-button>
+          <el-button @click="certificate_edit()">提交</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -284,12 +284,11 @@ export default {
         //若从届次传过来，届次的数据
         Session:{
           session_id: "",
-          number:"",
-          category:"",
+          project_id:""
         },
         certificate_SelectForm:{
-          selected:"",
-          selected_value:"",
+          type: "",
+          info: ""
         },
         certificate_show:{
           session:"", //届次
@@ -325,6 +324,9 @@ export default {
           rank:"", //获奖名次
           giver:"", //颁奖机构
         },
+        certificate_delForm:{
+          certificate_id:""
+        },
        //添加框的标志值
       dialogVisible: false,
       //编辑框的标志值
@@ -336,29 +338,36 @@ export default {
     },
     async mounted() {
     // 获取datas
-    // this.Session.session_id=this.$route.query.session_id;
-    // this.Session.number=this.$route.query.number;
+    this.Session.session_id=this.$route.query.session_id;
+    window.sessionStorage.setItem('session_id', this.$route.query.session_id);
+    // this.certificate_SelectForm.session_id=this.$route.query.session_id;
+    // this.certificate_editForm.session_id=this.$route.query.session_id;
+    // this.certificate_delForm.session_id=this.$route.query.session_id;
+
+    this.Session.project_id=window.sessionStorage.getItem("project_id")
     this.CertificatelistGet();
   },
     methods:{
       //获取证书数据
     CertificatelistGet(){
-      this.getRequest('http://127.0.0.1:5000/certificateList').then(resp=>{
-        if(resp){
-          this.CertificateList=resp;
-        }
+      this.getRequest('http://127.0.0.1:5000/allCertificateList').then(resp=>{
+        if(resp.re_code=="0"){
+          this.Certificatelist=resp.certificates;
+        }else{
+              alert(resp.msg);
+              return false;
+            }
       })
     },
       // 通过关键词搜索
     certificateSearch(){
         this.$refs.certificate_SelectForm.validate((valid) => {
         if(valid){
-          this.getRequest('http://127.0.0.1:5000/certificate',this.certificate_SelectForm).then(resp=>{
-            // alert(JSON.stringify(resp));
-            if(resp){
+          this.getRequest('http://127.0.0.1:5000/allCertificate',this.certificate_SelectForm).then(resp=>{
+            if(resp.re_code=="0"){
               //返回搜索结果
               //刷新数据列表
-              this.CertificateListGet();
+              this.Certificatelist=resp.certificates;
             }
           })
         }else{
@@ -387,8 +396,8 @@ export default {
     certificate_sumbit(){
       this.$refs.certificate_addForm.validate((valid) => {
         if(valid){
-          this.postRequest('http://127.0.0.1:5000/certificate',this.certificate_addForm).then(resp=>{
-            if(resp){
+          this.postRequest('http://127.0.0.1:5000/allCertificate',this.certificate_addForm).then(resp=>{
+            if(resp.re_code=="0"){
               alert("添加成功")
               //刷新数据列表
               this.CertificatelistGet();
@@ -404,11 +413,11 @@ export default {
               this.certificate_addForm.giver="";
               //关闭弹窗
               this.handleClose();
+            }else{
+              alert(resp.msg);
+              return false;
             }
           })
-        }else{
-          this.$message.error('添加失败');
-          return false;
         }
       })
     },
@@ -423,16 +432,20 @@ export default {
     },
      //编辑证书提交
     certificate_edit(){
-      this.putequest('http://127.0.0.1:5000/certificate',this.certificate_editForm).then(resp=>{
-        if(resp){
+      alert(JSON.stringify(this.certificate_editForm));
+      this.putRequest('http://127.0.0.1:5000/allCertificate',this.certificate_editForm).then(resp=>{
+        if(resp.re_code=="0"){
           //刷新数据列表
           this.CertificatelistGet();
           //关闭弹窗
           this.handleClose1();
-        }
+        }else{
+              alert(resp.msg);
+              return false;
+            }
       })
     },
-    // 删除项目
+    // 删除证书
     deleteRow(index, data) {
         // rows.splice(index, 1); //前端删除代码
         this.$confirm('此操作将永久删除ID为['+data.certificate_id+']的证书, 是否继续?', '提示', {
@@ -440,14 +453,18 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.deleteRequest('http://127.0.0.1:5000/certificate',data.certificate_id).then(resp=>{
-            if(resp){
+          this.certificate_delForm.certificate_id=data.certificate_id;
+          this.deleteRequest('http://127.0.0.1:5000/allCertificate',this.certificate_delForm).then(resp=>{
+            if(resp.re_code=="0"){
               this.$message({
               type: 'success',
               message: '删除成功!'
               });
               //刷新数据列表
               this.CertificatelistGet();
+            }else{
+              this.$message.error('删除失败');
+              return false;
             }
           })
         }).catch(() => {
@@ -614,6 +631,10 @@ export default {
   .layer03 input{
     width:200px;
     height:23px;
+    padding: 1px 2px;
+    border-width: 2px;
+    border-style: inset;
+    border-color: -internal-light-dark(rgb(118, 118, 118));
   }  
   .el-dialog__body{
     height:185px;

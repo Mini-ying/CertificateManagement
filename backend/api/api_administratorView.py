@@ -38,8 +38,8 @@ del_parser.add_argument('user_id',type=str,required=True,help='必须传入要�
 class UserList(Resource):
     @is_admin
     def get(self):
-        user = UserInfo.query.all()
-        return {'re_code': RET.OK, 'msg': '查询用户成功', 'user': marshal(user, user_fields)}
+        users = UserInfo.query.all()
+        return {'re_code': RET.OK, 'msg': '查询用户成功', 'users': marshal(users, user_fields)}
 
 
 #管理员后台管理页面
@@ -55,7 +55,7 @@ class AdminCenter(Resource):
         if type=='username':
             users=UserInfo.query.filter(UserInfo.username.like('%'+info+'%')).all()
             if users:
-                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+                return {'re_code': RET.OK, 'msg': '查询成功', 'users': marshal(users, user_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="用户不存在")
 
@@ -64,7 +64,7 @@ class AdminCenter(Resource):
         if type=='user_id':
             users=UserInfo.query.filter(UserInfo.user_id.like('%'+info+'%')).all()
             if users:
-                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+                return {'re_code': RET.OK, 'msg': '查询成功', 'users': marshal(users, user_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="用户不存在")
 
@@ -72,9 +72,18 @@ class AdminCenter(Resource):
         if type=='phone':
             users=UserInfo.query.filter(UserInfo.phone.like('%'+info+'%')).all()
             if users:
-                return {'re_code': RET.OK, 'msg': '查询成功', 'user': marshal(users, user_fields)}
+                return {'re_code': RET.OK, 'msg': '查询成功', 'users': marshal(users, user_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="用户不存在")
+
+        # 根据手机号搜索
+        if type == 'role':
+            users = UserInfo.query.filter(UserInfo.role.like('%' + info + '%')).all()
+            if users:
+                return {'re_code': RET.OK, 'msg': '查询成功', 'users': marshal(users, user_fields)}
+            else:
+                return jsonify(re_code=RET.NODATA, msg="用户不存在")
+
 
     #添加用户
     @is_admin
@@ -109,8 +118,8 @@ class AdminCenter(Resource):
         db.session.add(user)
         db.session.commit()
 
-        user = UserInfo.query.all()
-        return {'re_code': RET.OK, 'msg': '添加用户成功', 'user': marshal(user, user_fields)}
+        users = UserInfo.query.all()
+        return {'re_code': RET.OK, 'msg': '添加用户成功', 'users': marshal(users, user_fields)}
 
     #删除用户
     @is_admin
@@ -139,8 +148,8 @@ class AdminCenter(Resource):
 
         db.session.delete(user)
         db.session.commit()
-        user = UserInfo.query.all()
-        return {'re_code': RET.OK, 'msg': '删除用户成功', 'user': marshal(user, user_fields)}
+        users = UserInfo.query.all()
+        return {'re_code': RET.OK, 'msg': '删除用户成功', 'users': marshal(users, user_fields)}
 
 
 api.add_resource(AdminCenter,'/Admin')

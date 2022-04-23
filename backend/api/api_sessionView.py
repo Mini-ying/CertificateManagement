@@ -49,7 +49,7 @@ class SessionListApi(Resource):
         sessions=Session.query.filter(and_(Session.project_id==project_id,User_sessions.user_id==user_id,User_sessions.session_id==Session.session_id
                                                )).all()
         if sessions:
-            return {'re_code': RET.OK, 'msg': '查询成功', 'sessions': marshal(sessions, session_fields)}
+            return {'re_code': RET.OK, 'msg': '显示成功', 'sessions': marshal(sessions, session_fields)}
         else:
             return {'msg':'当前届次暂无届次信息'}
 
@@ -62,6 +62,15 @@ class SessionApi(Resource):
         project_id=args.get('project_id')
         type=args.get('type')
         info=args.get('info')
+
+        if type=='session_id': #通过届次来查询
+            sessions=Session.query.filter(and_(Session.session_id.like('%'+info+'%'),Session.project_id==project_id,
+                                               User_sessions.session_id==Session.session_id,
+                                               User_sessions.user_id==user_id)).all()
+            if sessions:
+                return {'re_code':RET.OK, 'msg':'查询成功', 'sessions':marshal(sessions,session_fields)}
+            else:
+                return jsonify(re_code=RET.NODATA,msg="不存在该届次")
 
         if type=='number': #通过届次来查询
             sessions=Session.query.filter(and_(Session.number.like('%'+info+'%'),Session.project_id==project_id,

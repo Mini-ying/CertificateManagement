@@ -17,14 +17,14 @@
         <el-form  :inline="true" :model="session_SelectForm" ref="session_SelectForm" size="small"  label-width="140px"
         >
           <el-form-item label="输入搜索：">
-            <select v-model="session_SelectForm.selected" class="select1">
+            <select v-model="session_SelectForm.type" class="select1">
               <option disabled value="">请选择</option>
-              <option value="project_id">届次ID</option>
-              <option value="project_name">届次</option>
-              <option value="project_name">届次类别</option>
+              <option value="session_id">届次ID</option>
+              <option value="number">届次</option>
+              <option value="category">届次类别</option>
             </select>
             <el-input
-              v-model="session_SelectForm.selected_value"
+              v-model="session_SelectForm.info"
               class="input-width"
             ></el-input>
           </el-form-item>
@@ -89,7 +89,7 @@
         </div>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible1 = false">取 消</el-button>
-          <el-button @click="session_sumbit()">提交</el-button>
+          <el-button @click="session_edit()">提交</el-button>
         </span>
       </el-dialog>
     </el-card>
@@ -179,8 +179,9 @@ export default {
       },
       //搜索的类别和关键字
       session_SelectForm: {
-        selected: "",
-        selected_value: "",
+        type: "",
+        info: "",
+        project_id:""
       },
       //要添加的项目id和项目名字
       session_addForm:{
@@ -191,9 +192,14 @@ export default {
       },
       //要编辑的项目id和项目名字
       session_editForm:{
+        project_id:"",
         session_id: "",
         number:"",
         category:"",
+      },
+      session_delForm:{
+        session_id:"",
+        project_id:""
       },
       //添加框的标志值
       dialogVisible: false,
@@ -206,28 +212,37 @@ export default {
     // 获取datas
     this.Project.project_id = this.$route.query.project_id;
     this.Project.project_name = this.$route.query.project_name;
+
+    window.sessionStorage.setItem('project_id', this.$route.query.project_id);
     this.SessionlistGet();
   },
   methods: {
      //获取届次数据
     SessionlistGet(){
-      this.getRequest('http://127.0.0.1:5000/sessionList',this.Project.project_id).then(resp=>{
-        if(resp){
-          this.Sessionlist=resp;
-        }
+      this.getRequest('http://127.0.0.1:5000/sessionList',this.Project).then(resp=>{
+        if(resp.re_code=="0"){
+          // this.Sessionlist.project_id=window.sessionStorage.getItem("project_id");
+          this.Sessionlist=resp.sessions;
+        }else{
+              alert(resp.msg);
+            }
       })
     },
     // 通过关键词搜索待定
     sessionSearch() {
       this.$refs.session_SelectForm.validate((valid) => {
         if(valid){
+          this.session_SelectForm.project_id=window.sessionStorage.getItem("project_id");
           this.getRequest('http://127.0.0.1:5000/session',this.session_SelectForm).then(resp=>{
             // alert(JSON.stringify(resp));
-            if(resp){
+            if(resp.re_code=="0"){
               //返回搜索结果
               //刷新数据列表
-              this.SessionlistGet();
-            }
+              this.Sessionlist=resp.sessions;
+            }else{
+                    this.$message.error('无该搜索结果');
+                    return false;
+                  }
           })
         }else{
           this.$message.error('无该搜索结果');
@@ -252,7 +267,7 @@ export default {
       this.$refs.session_addForm.validate((valid) => {
         if(valid){
           this.postRequest('http://127.0.0.1:5000/session',this.session_addForm).then(resp=>{
-            if(resp){
+            if(resp.re_code=="0"){
               alert("添加成功")
               //刷新数据列表
               this.SessionlistGet();
@@ -263,6 +278,9 @@ export default {
               this.session_addForm.category="";
               //关闭弹窗
               this.handleClose();
+            }else{
+              alert(resp.msg);
+              return false;
             }
           })
         }else{
@@ -285,16 +303,20 @@ export default {
     },
      //编辑届次提交
     session_edit(){
-      this.putequest('http://127.0.0.1:5000/session',this.session_editForm).then(resp=>{
-        if(resp){
+      this.session_editForm.project_id=window.sessionStorage.getItem("project_id");
+      this.putRequest('http://127.0.0.1:5000/session',this.session_editForm).then(resp=>{
+        if(resp.re_code=="0"){
           //刷新数据列表
           this.SessionlistGet();
           //关闭弹窗
           this.handleClose1();
-        }
+        }else{
+              alert(resp.msg);
+              return false;
+            }
       })
     },
-    //编辑届次
+    //删除届次
     deleteRow(index, data) {
         // rows.splice(index, 1); //前端删除代码
         this.$confirm('此操作将永久删除['+data.number+']届次, 是否继续?', '提示', {
@@ -302,14 +324,18 @@ export default {
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.deleteRequest('http://127.0.0.1:5000/session',data.session_id).then(resp=>{
-            if(resp){
+          this.session_delForm.session_id=data.session_id;
+          this.session_delForm.project_id=window.sessionStorage.getItem("project_id");
+          this.deleteRequest('http://127.0.0.1:5000/session',this.session_delForm).then(resp=>{
+            if(resp.re_code=="0"){
               this.$message({
               type: 'success',
               message: '删除成功!'
               });
               //刷新数据列表
               this.SessionlistGet();
+            }else{
+              alert(resp.msg);
             }
           })
         }).catch(() => {
@@ -395,6 +421,10 @@ export default {
   .layer03 input{
     width:200px;
     height:23px;
+    padding: 1px 2px;
+    border-width: 2px;
+    border-style: inset;
+    border-color: -internal-light-dark(rgb(118, 118, 118));
   }
   .el-dialog__body{
     height:70px;
