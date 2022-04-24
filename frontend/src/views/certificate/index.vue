@@ -35,7 +35,29 @@
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
       <el-button type="primary" class="button1" @click="preview" size="small">添加证书</el-button>
-      <el-button type="primary" class="button1"  size="small">导入证书</el-button>
+      <el-button type="primary" class="button1" @click="preview2" size="small">批量导入证书</el-button>
+
+      
+      <el-dialog title="批量导入证书" :visible.sync="dialogVisible3" width="60%" :before-close="handleClose3">
+        <el-upload ref="upload"
+            accept=".xls,.xlsx"
+            action="#"
+            :auto-upload="false"
+            :multiple="false"
+            :file-list="fileList"
+            :before-upload="beforeUpload"
+            :http-request="uploadHttpRequest"
+            :on-remove="fileRemove"
+            :on-change="fileChange">
+            <el-button size="small" type="primary">选择文件</el-button>
+            <div slot="tip" class="el-upload__tip" style="margin-top:20px;">一次只能上传一个xls/xlsx文件，且不超过10M</div>
+        </el-upload>
+        <el-row>
+            <el-button size="small" @click="closeDialog">取 消</el-button>
+            <el-button type="primary" size="small" @click="submitUpload">上 传</el-button>
+        </el-row>
+      </el-dialog>
+      
       <el-dialog title="添加证书" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
             <div class="chapter" v-show="isShow" >
               <el-form :model="certificate_addForm" ref="certificate_addForm" >
@@ -293,7 +315,8 @@ export default {
           info: ""
         },
         certificate_show:{
-          session:"", //届次
+          project_id:"",
+          session_id:"", //届次
           certificate_id:"", //证书编号
           certificate_name:"", //证书名称
           winner:"", //获奖者名称
@@ -335,6 +358,8 @@ export default {
       dialogVisible1: false,
       //证书的标志值
       dialogVisible2: false,
+      //批量导入证书的标志值
+      dialogVisible3:false,
       isShow: true,
       }
     },
@@ -403,9 +428,17 @@ export default {
     handleClose2() {
       this.dialogVisible2 = false;
     },
+     // 批量导入证书弹窗关闭
+    handleClose3() {
+      this.dialogVisible3 = false;
+    },
     // 添加弹窗显示
     preview() {
       this.dialogVisible = true;
+    },
+    //批量导入证书弹窗显示
+    preview2() {
+      this.dialogVisible3 = true;
     },
     // 添加新证书提交
     certificate_sumbit(){
@@ -439,7 +472,6 @@ export default {
     },
      //编辑证书提交
     certificate_edit(){
-      alert(JSON.stringify(this.certificate_editForm));
       this.putRequest('http://127.0.0.1:5000/allCertificate',this.certificate_editForm).then(resp=>{
         if(resp.re_code=="0"){
           //刷新数据列表
@@ -509,6 +541,72 @@ export default {
       window.sessionStorage.setItem('design_id', val1);
       this.$router.push({path:'/design'});
     },
+    //批量导入证书
+    beforeUpload(file) {
+        //文件类型
+        const isType = file.type === 'application/vnd.ms-excel'
+        const isTypeComputer = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        const fileType = isType || isTypeComputer
+        if(!fileType) {
+            this.$message.error('上传文件只能是xls/xlsx格式！')
+        }
+ 
+        // 文件大小限制为10M
+        const fileLimit = file.size / 1024 / 1024 < 10;
+        if(!fileLimit) {
+            this.$message.error('上传文件大小不超过10M！');
+        }
+        return fileType && fileLimit
+    },// 自定义上传方法，param是默认参数，可以取得file文件信息，具体信息如下图
+    uploadHttpRequest(param) {
+        const formData = new FormData() //FormData对象，添加参数只能通过append('key', value)的形式添加
+        formData.append('file', param.file) //添加文件对象
+        formData.append('uploadType', this.rulesType)
+        // const url = `${this.myBaseURL}/operation/ruleImport/importData` //上传地址
+        this.postFileRequest('http://127.0.0.1:5000/importCertificates',formData)
+            .then( res => {
+                if(res.re_code=="0")
+              {
+                alert(res.msg);
+                //刷新数据列表
+              this.CertificatelistGet();
+              //关闭弹窗
+              this.handleClose3();
+              }else{
+                alert(res.msg);
+                //关闭弹窗
+              this.handleClose3();
+              }
+            }).catch( err => {
+                console.log('失败', err)
+                alert("上传失败")
+                //关闭弹窗
+                this.handleClose3();
+                param.onError() //上传失败的文件会从文件列表中删除
+            })
+    },
+    // 点击上传：手动上传到服务器，此时会触发组件的http-request
+    submitUpload() {
+        this.$refs.upload.submit()
+    },
+    // 文件发生改变
+    fileChange(file, fileList) {
+        if (fileList.length > 0) {
+            this.fileList = [fileList[fileList.length - 1]] // 展示最后一次选择的文件
+        }
+    },
+    // 移除选择的文件
+    fileRemove(file, fileList) {
+        if(fileList.length < 1) {
+            this.uploadDisabled = true //未选择文件则禁用上传按钮
+        }
+    },
+    // 取消
+    closeDialog() {
+        this.$refs.upload.clearFiles() //清除上传文件对象
+        this.fileList = [] //清空选择的文件列表
+        this.$emit('close', false)
+    }
   }
 }
 </script>

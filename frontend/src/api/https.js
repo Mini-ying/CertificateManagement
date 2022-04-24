@@ -62,6 +62,18 @@ export const postRequest=(url,params)=>{
   })
 }
 
+//传输文件格式的post请求
+export const postFileRequest=(url,params)=>{
+  return axios({
+    method:'post',
+    url:url,
+    data:params,
+    header:{
+      'contentType': "multipart/form-data"
+    }
+  })
+}
+
 //传输json格式的编辑请求
 export const putRequest=(url,params)=>{
   return axios({
@@ -73,6 +85,7 @@ export const putRequest=(url,params)=>{
     }
   })
 }
+
 //传输json格式的get请求
 export const getRequest=(url,params)=>{
   return axios({

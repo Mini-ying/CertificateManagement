@@ -12,6 +12,7 @@ import { postRequest } from './api/https'
 import { putRequest } from './api/https'
 import { getRequest } from './api/https'
 import { deleteRequest } from './api/https'
+import{postFileRequest}from './api/https'
 
 Vue.use(ElementUI)
 Vue.use(VueKonva)
@@ -20,6 +21,7 @@ Vue.prototype.postRequest=postRequest;
 Vue.prototype.putRequest=putRequest;
 Vue.prototype.getRequest=getRequest;
 Vue.prototype.deleteRequest=deleteRequest;
+Vue.prototype.postFileRequest=postFileRequest;
 
 Vue.config.productionTip = false
 new Vue({

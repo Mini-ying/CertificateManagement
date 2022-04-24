@@ -23,6 +23,19 @@ certificate_fields={
     'giver':fields.String
 }
 
+#直接进入证书管理页面的fields
+Allcertificate_fields={
+    'project_id':fields.String,
+    'session_id':fields.String,
+    'certificate_id':fields.String,
+    'certificate_name':fields.String,
+    'level':fields.String,
+    'winner':fields.String,
+    'rank': fields.String,
+    'date':CustomDate(dt_format='strftime'),
+    'giver':fields.String
+}
+
 #显示项目的传入
 parser=reqparse.RequestParser()
 parser.add_argument('project_id',type=str,required=True,help='必须传入项目id',location=['form','args'])
@@ -55,7 +68,7 @@ ex_single_parser=parser.copy()
 ex_single_parser.add_argument('certificate_id',type=str,required=True,help='必须传入要导出的certificate_id')
 
 #批量导入证书的传入
-im_parser=parser.copy()
+im_parser=reqparse.RequestParser()
 im_parser.add_argument('file',type=FileStorage,location='files',required=True,help='必须上传文件')
 
 #直接进入证书页面的传入
@@ -101,7 +114,7 @@ class AllCertificateListApi(Resource):
         user_id = g.user.user_id
         certificates = Certificate.query.filter(Certificate.user_id == user_id).all()
 
-        return {'re_code': RET.OK, 'msg': '显示成功', 'certificates': marshal(certificates, certificate_fields)}
+        return {'re_code': RET.OK, 'msg': '显示成功', 'certificates': marshal(certificates, Allcertificate_fields)}
 
 
 class CertificateApi(Resource):
@@ -270,7 +283,7 @@ class AllCertificateApi(Resource):
                 Certificate.certificate_id.like('%' + info + '%'), Certificate.user_id == user_id)).all()
 
             if certificates:
-                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, certificate_fields)}
+                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, Allcertificate_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="证书不存在")
 
@@ -279,7 +292,7 @@ class AllCertificateApi(Resource):
                 Certificate.certificate_name.like('%' + info + '%'), Certificate.user_id == user_id)).all()
 
             if certificates:
-                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, certificate_fields)}
+                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, Allcertificate_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="证书不存在")
 
@@ -287,7 +300,7 @@ class AllCertificateApi(Resource):
             certificates = Certificate.query.filter(and_(
                 Certificate.winner.like('%' + info + '%'), Certificate.user_id == user_id)).all()
             if certificates:
-                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, certificate_fields)}
+                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, Allcertificate_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="证书不存在")
 
@@ -295,7 +308,7 @@ class AllCertificateApi(Resource):
             certificates = Certificate.query.filter(and_(
                 Certificate.project_id.like('%' + info + '%'), Certificate.user_id == user_id)).all()
             if certificates:
-                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, certificate_fields)}
+                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, Allcertificate_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="证书不存在")
 
@@ -303,7 +316,7 @@ class AllCertificateApi(Resource):
             certificates = Certificate.query.filter(and_(
                 Certificate.session_id.like('%' + info + '%'), Certificate.user_id == user_id)).all()
             if certificates:
-                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, certificate_fields)}
+                return {'re_code': RET.OK, 'msg': '搜索成功', 'certificates': marshal(certificates, Allcertificate_fields)}
             else:
                 return jsonify(re_code=RET.NODATA, msg="证书不存在")
 
@@ -350,7 +363,7 @@ class AllCertificateApi(Resource):
         db.session.commit()
 
         certificates = Certificate.query.filter(Certificate.user_id == user_id).all()
-        return {'re_code': RET.OK, 'msg': '添加成功', 'certificates': marshal(certificates, certificate_fields)}
+        return {'re_code': RET.OK, 'msg': '添加成功', 'certificates': marshal(certificates, Allcertificate_fields)}
 
     @is_login
     def put(self):  # 编辑证书
@@ -386,7 +399,7 @@ class AllCertificateApi(Resource):
         db.session.commit()
 
         certificates = Certificate.query.filter(Certificate.user_id == user_id).all()
-        return {'re_code': RET.OK, 'msg': '修改成功', 'certificates': marshal(certificates, certificate_fields)}
+        return {'re_code': RET.OK, 'msg': '修改成功', 'certificates': marshal(certificates, Allcertificate_fields)}
 
     @is_login
     def delete(self):  # 删除证书
@@ -402,7 +415,7 @@ class AllCertificateApi(Resource):
         db.session.commit()
 
         certificates = Certificate.query.filter(Certificate.user_id == user_id).all()
-        return {'re_code': RET.OK, 'msg': '删除成功', 'certificates': marshal(certificates, certificate_fields)}
+        return {'re_code': RET.OK, 'msg': '删除成功', 'certificates': marshal(certificates, Allcertificate_fields)}
 
 #导出单个证书
 class ExportCertificate(Resource):
@@ -432,52 +445,49 @@ class ImportCertificates(Resource):
         clinic_file=xlrd.open_workbook(file_contents=f)
         table=clinic_file.sheet_by_index(0)
         rowNum=table.nrows #sheet行数
-        colNum=table.ncols #sheet列数
 
-        list=[]
-        for i in range(rowNum):
-            rowlist=[]
-            for j in range(colNum):
-                rowlist.append(table.cell_value(i,j))
-            list.append(rowlist)
-            del list[0]  #删掉第一行，第一行是文件头
+        for i in range(1,rowNum):
 
-            #将数据插入到数据库
-            with db.auto_commit():
-                for a in list:
-                    newC = Certificate()
-                    newC.certificate_id=a[0]
-                    newC.level=a[1]
-                    newC.certificate_name=a[2]
-                    newC.winner=a[3]
-                    newC.rank=a[4]
-                    newC.giver=a[5]
-                    newC.date=a[6]
-                    newC.session_id=a[7]
-                    newC.project_id = a[8]
-                    newC.user_id=user_id
+            newC = Certificate()
+            row_data=table.row_values(i)
+            newC.project_id = str(row_data[0])
+            newC.session_id = str(row_data[1])
+            newC.certificate_id = str(row_data[2])
+            newC.level = str(row_data[3])
+            newC.certificate_name = str(row_data[4])
+            newC.winner = str(row_data[5])
+            newC.rank = str(row_data[6])
+            newC.giver = str(row_data[7])
+            newC.date = str(row_data[8])
+            newC.user_id = user_id
 
-                    # 验证新增证书的项目是否存在
-                    pro = Project.query.filter(
-                        and_(Project.project_id == a[8], Project.project_id == User_projects.project_id,
-                             User_projects.user_id == user_id)).all()
-                    if not pro:
-                        return jsonify(re_coder=RET.NODATA, msg="不存在该项目，请先添加项目！")
+            print("证书是：")
+            print(marshal(newC, certificate_fields))
 
-                    # 验证新增证书的届次是否存在
-                    sessions = Session.query.filter(and_(Session.session_id == a[7], Session.project_id == a[8],
-                                                         User_sessions.session_id == Session.session_id,
-                                                         User_sessions.user_id == user_id)).all()
-                    if not sessions:
-                        return jsonify(re_code=RET.DBERR, msg="该届次不存在，请先添加新届次！")
+            # 验证新增证书的项目是否存在
+            pro = Project.query.filter(
+                and_(Project.project_id == newC.project_id, Project.project_id == User_projects.project_id,
+                     User_projects.user_id == user_id)).all()
+            if not pro:
+                return jsonify(re_coder=RET.NODATA, msg="不存在该项目，请先添加项目！")
 
-                    # 验证证书号是否唯一
-                    c_i = Certificate.query.filter(Certificate.certificate_id == a[0]).first()
-                    if c_i:
-                        return jsonify(re_code=RET.DATAEXIST, msg="证书编号不能重复，请修改！")
-                    db.session.add(newC)
-                    db.session.commit()
-        return {'re_code': RET.OK, 'msg': '导入成功'}
+            # 验证新增证书的届次是否存在
+            sessions = Session.query.filter(and_(Session.session_id == newC.session_id, Session.project_id == newC.project_id,
+                                                 User_sessions.session_id == Session.session_id,
+                                                 User_sessions.user_id == user_id)).all()
+            if not sessions:
+                return jsonify(re_code=RET.DBERR, msg="该届次不存在，请先添加新届次！")
+
+            # 验证证书号是否唯一
+            c_i = Certificate.query.filter(Certificate.certificate_id == newC.certificate_id).first()
+            if c_i:
+                return jsonify(re_code=RET.DATAEXIST, msg="证书编号不能重复，请修改！")
+            db.session.add(newC)
+            db.session.commit()
+
+        certificates = Certificate.query.filter(
+            Certificate.user_id == user_id,).first()
+        return {'re_code': RET.OK, 'msg': '导入成功', 'certificates': marshal(certificates, Allcertificate_fields)}
 
 #批量导出证书
 # class ExportCertificates(Resource):
