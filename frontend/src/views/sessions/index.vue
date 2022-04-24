@@ -2,7 +2,7 @@
   <!-- 项目管理详情页 -->
   <div class="project">
     <div class="title">
-      {{Project.project_name}}项目-届次管理
+      届次管理><router-link to="/project">{{this.Project.project_id}}项目</router-link>>>届次
     </div>
     <el-card class="filter-container" shadow="never">
       <div>
@@ -62,7 +62,7 @@
           </div>
         </div>
         <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="handleClose()">取 消</el-button>
           <el-button @click="session_sumbit()">提交</el-button>
         </span>
       </el-dialog>
@@ -98,27 +98,27 @@
     :data="Sessionlist"
     style="width: 100%"
     max-height="320">
-    <el-table-column
+    <!-- <el-table-column
       fixed
       prop="project_id"
       label="项目ID"
       width="250">
-    </el-table-column>
+    </el-table-column> -->
     <el-table-column
       fixed
       prop="session_id"
       label="届次ID"
-      width="250">
+      width="200">
     </el-table-column>
     <el-table-column
       prop="number"
       label="届次"
-      width="200">
+      width="250">
     </el-table-column>
     <el-table-column
       prop="category"
       label="届次类别"
-      width="200">
+      width="250">
     </el-table-column>
     <el-table-column
       fixed="right"
@@ -210,10 +210,8 @@ export default {
   },
   async mounted() {
     // 获取datas
-    this.Project.project_id = this.$route.query.project_id;
-    this.Project.project_name = this.$route.query.project_name;
-
-    window.sessionStorage.setItem('project_id', this.$route.query.project_id);
+    this.Project.project_id = window.sessionStorage.getItem('project_id');
+    this.Project.project_name = window.sessionStorage.getItem('project_name');
     this.SessionlistGet();
   },
   methods: {
@@ -240,9 +238,10 @@ export default {
               //刷新数据列表
               this.Sessionlist=resp.sessions;
             }else{
-                    this.$message.error('无该搜索结果');
-                    return false;
-                  }
+              this.Sessionlist="";
+              this.$message.error('无该搜索结果');
+              return false;
+            }
           })
         }else{
           this.$message.error('无该搜索结果');
@@ -250,9 +249,17 @@ export default {
         }
       })
     },
+    //添加内容重置
+    Reset(){
+      this.session_addForm.project_id="";
+      this.session_addForm.session_id="";
+      this.session_addForm.number="";
+      this.session_addForm.category="";
+    },
     // 添加弹窗关闭
     handleClose() {
       this.dialogVisible = false;
+      this.Reset();
     },
     // 编辑弹窗关闭
     handleClose1() {
@@ -272,10 +279,7 @@ export default {
               //刷新数据列表
               this.SessionlistGet();
               //弹窗的表单变为空值
-              this.session_addForm.project_id="";
-              this.session_addForm.session_id="";
-              this.session_addForm.number="";
-              this.session_addForm.category="";
+              this.Reset();
               //关闭弹窗
               this.handleClose();
             }else{
@@ -291,10 +295,10 @@ export default {
     },
     //查看该届次的证书
     check_info(val1,val2) {
+      window.sessionStorage.setItem('session_id', val1);
+      window.sessionStorage.setItem('number', val2);
       this.$router.push({
-        path: "/session-certificate:session_id,number",
-        query: { session_id: val1, number: val2 },
-      });
+        path: "/session-certificate"});
     },
     //编辑届次按钮
     edit_info(index, data) {
@@ -310,6 +314,7 @@ export default {
           this.SessionlistGet();
           //关闭弹窗
           this.handleClose1();
+          alert(resp.msg);
         }else{
               alert(resp.msg);
               return false;
@@ -429,5 +434,13 @@ export default {
   .el-dialog__body{
     height:70px;
   }
+  .router-link-active {
+  text-decoration: none;
+  color: #2055b6;
+ }
+ a {
+  text-decoration: none;
+  color: #2055b6;
+ }
 }
 </style>

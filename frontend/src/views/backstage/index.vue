@@ -294,7 +294,7 @@ export default {
     //     }
     //   })
     // },
-    // 删除项目
+    // 删除用户
     deleteRow(index, data) {
         // rows.splice(index, 1); //前端删除代码
         this.$confirm('此操作将永久删除['+data.username+']用户, 是否继续?', '提示', {

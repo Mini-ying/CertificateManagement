@@ -75,7 +75,8 @@
         </div>
         <hr />
         <br>
-        <button @click="download" class="button2">保存为图片</button>
+         <button @click="reserve" class="button2">保存证书</button>
+        <button @click="download" class="button2">下载证书</button>
       </div>
       <div class="show-area">
         <v-stage :config="canvasData.stage" @mousedown="drawLine" ref="stage">
@@ -105,8 +106,8 @@ export default {
   components: {},
   data() {
     return {
-      // 用户名
-      UserInfo: {
+      // 证书ID
+      certficate: {
         id: "",
       },
       text: "",
@@ -143,8 +144,9 @@ export default {
     };
   },
   mounted() {
-    this.UserInfo.id = this.$route.query.id;
     document.querySelector("canvas").style.border = "1px solid blue";
+    // this.certficate.id=window.sessionStorage.getItem('design_id');
+    
   },
   created() {
     if (!this.oldCanvasData.imgList) {
@@ -191,6 +193,20 @@ export default {
         draggable,
         image,
       });
+    },
+    reserve(){
+      this.$refs.canvasData.validate((valid) => {
+        if(valid){
+          this.postRequest('http://127.0.0.1:5000/certficate',this.canvasData).then(resp=>{
+            if(resp){
+              alert("保存成功")
+            }else{
+                  alert(resp.msg);
+                  return false;
+                }
+          })
+        }
+      })
     },
     download() {
       let canvas = document.querySelector("canvas");

@@ -4,45 +4,72 @@
     <div class="title">
       个人信息
     </div>
-    <!-- 准备好的容器 -->
-    <div class="box_info" id="form_box">
-      <div class="shuru">
-      <form action="">
-        <!-- 展示用户ID -->
-        <div class="layer01">
-          <span style="margin-right: 44px">用 户 ID：</span>
-          <!-- 用户输入的id存放在id -->
-          <!-- {{UserInfo.user_id}} -->
+    <el-descriptions class="margin-top" title="" :column="3" :size="size" border>
+    <template slot="extra">
+      <el-button type="primary" class="button1" @click="preview" size="small">编辑</el-button>
+    </template>
+    <el-descriptions-item :span="3">
+      <template slot="label">
+        <i class="el-icon-postcard"></i>
+        用户ID
+      </template>
+      {{this.UserInfo.user_id}}
+    </el-descriptions-item>
+    <el-descriptions-item :span="3">
+      <template slot="label">
+        <i class="el-icon-user"></i>
+        用户名
+      </template>
+      {{this.UserInfo_show.username}}
+    </el-descriptions-item>
+    <el-descriptions-item :span="3">
+      <template slot="label">
+        <i class="el-icon-mobile-phone"></i>
+        电话号码
+      </template>
+      {{this.UserInfo_show.phone}}
+    </el-descriptions-item>
+    <!-- <el-descriptions-item :span="3">
+      <template slot="label">
+        <i class="el-icon-coin"></i>
+        密码
+      </template>
+      {{this.UserInfo_show.password}}
+    </el-descriptions-item> -->
+  </el-descriptions>
+  <el-dialog title="编辑个人信息" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
+        <div id="pdfDom">
+          <div class="proBox">
+            <div class="chapter" v-show="isShow">
+              <el-form :model="UserInfo_edit" ref="UserInfo_edit">
+              <div class="layer03">
+                <span style="margin-right: 25px">用户ID :</span>{{UserInfo_edit.user_id}}
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 10px">用户名 :</span>
+                <input type="text" v-model=" UserInfo_edit.username" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 15px">电话号码 :</span>
+                <input type="text" v-model=" UserInfo_edit.phone" maxlength="20"/>
+              </div>
+              <div class="layer03">
+                <span style="margin-right: 20px">密 码 :</span>
+                <input type="text" v-model=" UserInfo_edit.password" maxlength="20"/>
+              </div>
+              <div class="layer03" style="margin-left:299px;">
+                <span style="margin-right: 20px">再次输入密码 :</span>
+                <input type="text" v-model=" UserInfo_edit.repassword" maxlength="20"/>
+              </div>
+              </el-form>
+            </div>
+          </div>
         </div>
-        <!-- 展示用户名 -->
-        <div class="layer01">
-          <span style="margin-right: 44px">用 户 名：</span>
-          <!-- 用户输入的密码存放在suername -->
-          <input type="text" v-model="UserInfo_edit.username" maxlength="30" />
-        </div>
-        <div class="layer01">
-          <span style="margin-right: 37px">电话号码：</span>
-          <!-- 用户输入的密码存放在phone -->
-          <input type="text" v-model="UserInfo_edit.phone" maxlength="11" />
-        </div>
-        <div class="layer01">
-           <span style="margin-right: 59px">密 码：  </span>
-          <!-- 用户输入的密码存放在password -->
-          <input type="text" v-model="UserInfo_edit.password" maxlength="30" />
-        </div>
-        <div class="layer01">
-          再次输入密码：
-          <!-- 用户输入的密码存放在password -->
-          <input type="text" v-model="UserInfo_edit.password_again" maxlength="30" />
-        </div>
-      </form>
-      <div class="layer2">
-        <!-- 点击登录触发事件login（）验证账号密码 -->
-        <button class="change_nav" @click="information_edit">确认修改</button>
-        <!-- <router-link to="./homepage">denglu </router-link> -->
-      </div>
-      </div>
-    </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="information_edit()">提交</el-button>
+        </span>
+      </el-dialog>
   </div>
 </template>
 
@@ -56,14 +83,24 @@ export default {
       UserInfo: {
         user_id: "",
       },
-      UserInfo_edit:{
+      UserInfo_show:{
         username: "",
         phone: "",
         password: "",
-        password_again:"",
+        // password_again:"",
+      },
+      UserInfo_edit:{
+        user_id:"",
+        username: "",
+        phone: "",
+        password: "",
+        // password_again:"",
       },
       index1: 0, //设置默认index值
-      show: false //隐藏提示框
+      // show: false //隐藏提示框
+      //编辑框的标志值
+      dialogVisible: false,
+      isShow: true,
     };
     
   },
@@ -74,6 +111,7 @@ export default {
   },
   mounted (){
       this.UserInfo.user_id = window.sessionStorage.getItem('user_id');
+      this.UserInfo_edit.user_id=window.sessionStorage.getItem('user_id');
       this.get_info();
   },
   // inject:["reload"],
@@ -82,67 +120,38 @@ export default {
     get_info(){
       this.getRequest('http://127.0.0.1:5000/User').then(resp=>{
         if(resp.re_code=="0"){
-          this.UserInfo_edit=resp.users;
+          this.UserInfo_show=resp.user;
         }else{
           alert(resp.msg);
         }
       })
     },
+    // 编辑弹窗关闭
+    handleClose() {
+      this.dialogVisible = false;
+    },
+    //编辑弹窗显示
+    preview() {
+      this.UserInfo_edit.username=this.UserInfo_show.username;
+      this.UserInfo_edit.phone=this.UserInfo_show.phone;
+      this.UserInfo_edit.password="";
+      this.UserInfo_edit.repassword="";
+      this.dialogVisible = true;
+    },
      //编辑个人信息提交
     information_edit(){
-      this.putequest('http://127.0.0.1:5000/User',this.UserInfo_edit).then(resp=>{
-        if(resp){
+      this.putRequest('http://127.0.0.1:5000/User',this.UserInfo_edit).then(resp=>{
+        if(resp.re_code=="0"){
           //刷新数据列表
-          this.UserInfo_edit=resp.users;
+          this.UserInfo_show=resp.user; 
           //关闭弹窗
-          this.handleClose1();
+          this.handleClose();
+          alert(resp.msg);
         }else{
-          alert(JSON.stringify(resp));
+          alert(resp.msg);
         }
       })
     },
-
-
-    // // 判断用户名和电话号码是否有被修改，若被修改就修改该数据
-    // judge(){
-    //   if(this.UserInfo_change.username!=this.UserInfo.username)
-    //     {
-    //       this.UserInfo.username=this.UserInfo_change.username;
-    //     }
-    //     if(this.UserInfo_change.phone!=this.UserInfo.phone)
-    //     {
-    //       this.UserInfo.phone=this.UserInfo_change.phone;
-    //     }
-    //     alert("个人信息已修改");
-    // },
-    // // 判断是否需要修改密码
-    // change() {
-    //   // 若再次输入的密码为空值则默认不修改密码
-    //   if(this.UserInfo_change.password_again=="")
-    //   {
-    //     // 如果密码被修改过则弹出消息提示需要再次输入密码
-    //     if(this.UserInfo_change.password!=this.UserInfo.password)
-    //     {
-    //       alert("请再次输入密码");
-    //     }
-    //     // 如果密码没被修改过则只需要判断用户名和手机号码
-    //     else{
-    //       this.judge();
-    //     }
-    //   } 
-    //   else{
-    //     // 两次输入的密码一致才可以修改密码
-    //     if(this.UserInfo_change.password_again==this.UserInfo_change.password)
-    //     {
-    //       this.judge();
-    //       this.UserInfo.password=this.UserInfo_change.password;
-    //       this.UserInfo_change.password_again="";
-    //     }
-    //     else{
-    //       alert("两次输入的密码不一致，请重新修改");
-    //     }
-    //   }
-    // },
   },
 };
 </script>
@@ -191,6 +200,40 @@ export default {
     outline: none;
     border-radius: 5px;
   }
-  
+  .el-descriptions{
+    width:700px;
+    margin:40px auto;
+  }
+  .el-descriptions-item__cell.el-descriptions-item__label.is-bordered-label {
+    width:200px;
+  }
+  .button1 {
+    float: right;
+    margin: 0 15px 15px 0;
+    background-color: #0668bc;
+    border:#0668bc;
+    color: white;
+    border-radius: 5px;
+    width:68px;
+    height:35px;
+  }
+  .layer03 {
+  width:350px;
+  height:40px;
+  float:left;
+  color:#2055b6;
+}
+.layer03 input{
+  width:200px;
+  height:23px;
+  padding: 1px 2px;
+  border-width: 2px;
+  border-style: inset;
+  border-color: -internal-light-dark(rgb(118, 118, 118));
+
+}
+.el-dialog__body {
+  height:45px;
+}
 }
 </style>

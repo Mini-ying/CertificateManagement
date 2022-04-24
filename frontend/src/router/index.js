@@ -32,13 +32,13 @@ const routes = [
       },
       {
         // 项目-届次页面
-        path: '/sessions:project_id,project_name',
+        path: '/sessions',
         name: 'Sessions',
         component: () => import('@/views/sessions')
       },
       {
         // 届次-证书页面
-        path: '/session-certificate:session_id,number',
+        path: '/session-certificate',
         name: 'Session-certificate',
         component: () => import('@/views/session-certificate')
       },

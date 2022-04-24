@@ -53,7 +53,7 @@
           </div>
         </div>
         <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="handleClose()">取 消</el-button>
           <el-button @click="project_sumbit()">提交</el-button>
         </span>
       </el-dialog>
@@ -194,16 +194,23 @@ export default {
               this.Projectlist=resp.projects;
             }
             else{
-                  this.$message.error('无该搜索结果');
-                  return false;
-                }
+              this.Projectlist="";
+              this.$message.error('无该搜索结果');
+              return false;
+            }
           })
         }
       })
     },
+    //添加内容重置
+    Reset(){
+      this.project_addForm.project_id='';
+      this.project_addForm.project_name='';
+    },
     // 添加弹窗关闭
     handleClose() {
       this.dialogVisible = false;
+      this.Reset();
     },
     // 编辑弹窗关闭
     handleClose1() {
@@ -213,18 +220,18 @@ export default {
     preview() {
       this.dialogVisible = true;
     },
+    
     // 添加新项目提交
     project_sumbit(){
       this.$refs.project_addForm.validate((valid) => {
         if(valid){
           this.postRequest('http://127.0.0.1:5000/project',this.project_addForm).then(resp=>{
-            if(resp){
+            if(resp.re_code=="0"){
               alert("添加成功")
               //刷新数据列表
               this.ProjectlistGet();
               //弹窗的表单变为空值
-              this.project_addForm.project_id="";
-              this.project_addForm.project_name="";
+              this.Reset();
               //关闭弹窗
               this.handleClose();
             }else{
@@ -237,10 +244,10 @@ export default {
     },
     //查看该项目，跳转到届次页面
     check_info(val1, val2) {
-      this.$router.push({
-        path: "/sessions:project_id,project_name",
-        query: { project_id: val1, project_name: val2 },
-      });
+      //存项目id和名字
+      window.sessionStorage.setItem('project_id', val1);
+      window.sessionStorage.setItem('project_name', val2);
+      this.$router.push({ path: "/sessions" });
     },
     //编辑项目按钮
     edit_info(index, data) {
@@ -255,6 +262,7 @@ export default {
           this.ProjectlistGet();
           //关闭弹窗
           this.handleClose1();
+          alert(resp.msg);
         }else{
               alert(resp.msg);
             }

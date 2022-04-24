@@ -64,8 +64,8 @@ export default {
   data() {
     return {
       loginForm: {
-        user_id: "001",
-        password: "123456",
+        user_id: "20183220126",
+        password: "20183220126",
         // username: "",
         // phone: "",
       },

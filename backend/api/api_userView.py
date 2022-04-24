@@ -3,6 +3,7 @@ import uuid
 
 from flask import Blueprint, session, jsonify, g
 from flask_restful import Api, reqparse, fields, marshal_with, inputs, Resource, marshal
+from sqlalchemy import and_
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from backend.app_config import cache
@@ -94,8 +95,8 @@ class UserCenter(Resource):
         user_id=g.user.user_id
         user = UserInfo.query.filter(UserInfo.user_id == user_id).first()
 
-        #若修改用户名
-        if username:
+        # 验证有无修改用户名
+        if(username != user.username):
             # 验证是否有重名用户
             name = UserInfo.query.filter(UserInfo.username == username).first()
             if name:
@@ -103,24 +104,55 @@ class UserCenter(Resource):
             else:
                 user.username = username
 
-        #若修改手机
-        if phone:
-            #验证手机号是否唯一
-            user_phone=UserInfo.query.filter(UserInfo.phone==phone).first()
+        #验证有无修改手机号
+        if(phone!=user.phone):
+            # 验证手机号是否唯一
+            user_phone = UserInfo.query.filter(UserInfo.phone == phone).first()
             if user_phone:
                 return jsonify(re_code=RET.DATAEXIST, msg="该手机号已被注册,请修改！")
             else:
                 user.phone = phone
 
-        #若修改密码
-        if repassword:
-            #若两次输入密码一致
-            if password == repassword:
-                user.password = password
-                db.session.commit()
-                return {'re_code': RET.OK, 'msg': '修改密码成功'}
+        #验证有无修改密码
+        if password:
+            if repassword:
+                # 若两次输入密码一致
+                if password == repassword:
+                    user.password = password
+                    db.session.commit()
+                    return {'re_code': RET.OK, 'msg': '修改密码成功'}
+                else:
+                    return {'re_code': RET.PWDERR, 'msg': '两次密码不一致！'}
             else:
-                return {'re_code': RET.PWDERR, 'msg': '两次密码不一致！'}
+                return{'re_code':RET.NODATA,'msg':'请再次输入密码！'}
+
+        # #若修改用户名
+        # if username:
+        #     # 验证是否有重名用户
+        #     name = UserInfo.query.filter(UserInfo.username == username).first()
+        #     if name:
+        #         return jsonify(re_code=RET.DATAEXIST, msg="该用户名已被注册,请修改！")
+        #     else:
+        #         user.username = username
+        #
+        # #若修改手机
+        # if phone:
+        #     #验证手机号是否唯一
+        #     user_phone=UserInfo.query.filter(UserInfo.phone==phone).first()
+        #     if user_phone:
+        #         return jsonify(re_code=RET.DATAEXIST, msg="该手机号已被注册,请修改！")
+        #     else:
+        #         user.phone = phone
+        #
+        # #若修改密码
+        # if repassword:
+        #     #若两次输入密码一致
+        #     if password == repassword:
+        #         user.password = password
+        #         db.session.commit()
+        #         return {'re_code': RET.OK, 'msg': '修改密码成功'}
+        #     else:
+        #         return {'re_code': RET.PWDERR, 'msg': '两次密码不一致！'}
 
         db.session.commit()
         user = UserInfo.query.filter(UserInfo.user_id == user_id).first()

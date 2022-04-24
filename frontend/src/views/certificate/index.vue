@@ -35,6 +35,7 @@
       <i class="el-icon-tickets"></i>
       <span>数据列表</span>
       <el-button type="primary" class="button1" @click="preview" size="small">添加证书</el-button>
+      <el-button type="primary" class="button1"  size="small">导入证书</el-button>
       <el-dialog title="添加证书" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
             <div class="chapter" v-show="isShow" >
               <el-form :model="certificate_addForm" ref="certificate_addForm" >
@@ -77,7 +78,7 @@
               </el-form>
         </div>
         <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="handleClose()">取 消</el-button>
           <el-button @click="certificate_sumbit()">提交</el-button>
         </span>
       </el-dialog>
@@ -120,11 +121,12 @@
       </el-dialog>
     </el-card>
     <el-dialog title="" :visible.sync="dialogVisible2" width="60%" :before-close="handleClose2" custom-class="cerifi">
-      <el-button @click="download()">下载证书</el-button>
+      <el-button @click="download()" style="margin-left: 384px;">下载证书</el-button>
               <!-- <div id="pdfDom"> -->
                 <div id="dom-to-img-wrapper" v-show="isShow" style="height:725px">
                   <!-- <canvas> -->
-                    <img src="../../assets/images/certificate_background.png" style="position:absolute;width: 500px;height: 725px;margin-left: 140px;">
+                    <img src="../../assets/images/certificate_background.png" 
+                    style="position:absolute;width: 500px;height: 725px;margin-top: 20px;">
                   <div id="proBox" ref="imageDom">
                     <p class="tit">获奖证书</p>
                     <p class="proid"><span>编号：</span> 
@@ -205,7 +207,7 @@
         <el-button  @click.native.prevent="show(scope.$index,scope.row)"  type="text"  size="small">
           查看证书
         </el-button>
-        <el-button  @click.native.prevent="certificate_design(scope.$index, Certificatelist)"  type="text"  size="small">
+        <el-button  @click.native.prevent="certificate_design(scope.row.certificate_id)"  type="text"  size="small">
           自定义证书
         </el-button>
         <el-button  @click.native.prevent="edit_info(scope.$index,scope.row)"  type="text"  size="small">
@@ -371,14 +373,27 @@ export default {
             }
           })
         }else{
+          this.Certificatelist="";
           this.$message.error('无该搜索结果');
           return false;
         }
       })
     },
+    Reset(){
+      this.certificate_addForm.project_id="";
+      this.certificate_addForm.session_id="";
+      this.certificate_addForm.certificate_id="";
+      this.certificate_addForm.certificate_name="";
+      this.certificate_addForm.winner="";
+      this.certificate_addForm.level="";
+      this.certificate_addForm.date="";
+      this.certificate_addForm.rank="";
+      this.certificate_addForm.giver="";
+    },
     //添加 弹窗关闭
     handleClose() {
       this.dialogVisible = false;
+      this.Reset();
     },
     // 编辑弹窗关闭
     handleClose1() {
@@ -402,15 +417,7 @@ export default {
               //刷新数据列表
               this.CertificatelistGet();
               //弹窗的表单变为空值
-              this.certificate_addForm.project_id="";
-              this.certificate_addForm.session_id="";
-              this.certificate_addForm.certificate_id="";
-              this.certificate_addForm.certificate_name="";
-              this.certificate_addForm.winner="";
-              this.certificate_addForm.level="";
-              this.certificate_addForm.date="";
-              this.certificate_addForm.rank="";
-              this.certificate_addForm.giver="";
+              this.Reset();
               //关闭弹窗
               this.handleClose();
             }else{
@@ -439,10 +446,11 @@ export default {
           this.CertificatelistGet();
           //关闭弹窗
           this.handleClose1();
+          alert(resp.msg);
         }else{
-              alert(resp.msg);
-              return false;
-            }
+          alert(resp.msg);
+          return false;
+        }
       })
     },
     // 删除证书
@@ -496,7 +504,11 @@ export default {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-    }
+    },
+    certificate_design(val1){
+      window.sessionStorage.setItem('design_id', val1);
+      this.$router.push({path:'/design'});
+    },
   }
 }
 </script>
@@ -638,7 +650,7 @@ export default {
   }  
   .el-dialog__body{
     height:185px;
-    padding:30px 0px 30px 120px;
+    padding:30px 0px 30px 50px;
   }   
   .el-dialog__footer{
     padding:0px 40px 20px;
@@ -647,5 +659,9 @@ export default {
     height:900px;
     // padding:30px 0px 30px 120px;
   } 
+  #dom-to-img-wrapper{
+    width:500px;
+    margin:auto;
+  }
 }
 </style>
