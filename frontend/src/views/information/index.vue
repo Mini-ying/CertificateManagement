@@ -55,11 +55,11 @@
               </div>
               <div class="layer03">
                 <span style="margin-right: 20px">密 码 :</span>
-                <input type="text" v-model=" UserInfo_edit.password" maxlength="20"/>
+                <input type="password" v-model=" UserInfo_edit.password" maxlength="20"/>
               </div>
               <div class="layer03" style="margin-left:299px;">
                 <span style="margin-right: 20px">再次输入密码 :</span>
-                <input type="text" v-model=" UserInfo_edit.repassword" maxlength="20"/>
+                <input type="password" v-model=" UserInfo_edit.repassword" maxlength="20"/>
               </div>
               </el-form>
             </div>
@@ -144,9 +144,10 @@ export default {
         if(resp.re_code=="0"){
           //刷新数据列表
           this.UserInfo_show=resp.user; 
+          alert(resp.msg);
           //关闭弹窗
           this.handleClose();
-          alert(resp.msg);
+          
         }else{
           alert(resp.msg);
         }

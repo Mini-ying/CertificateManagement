@@ -312,9 +312,10 @@ export default {
         if(resp.re_code=="0"){
           //刷新数据列表
           this.SessionlistGet();
+          alert(resp.msg);
           //关闭弹窗
           this.handleClose1();
-          alert(resp.msg);
+          
         }else{
               alert(resp.msg);
               return false;

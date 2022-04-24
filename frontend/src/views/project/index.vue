@@ -260,9 +260,10 @@ export default {
         if(resp.re_code=="0"){
           //刷新数据列表
           this.ProjectlistGet();
+          alert(resp.msg);
           //关闭弹窗
           this.handleClose1();
-          alert(resp.msg);
+          
         }else{
               alert(resp.msg);
             }
