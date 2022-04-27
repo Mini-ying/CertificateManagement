@@ -447,7 +447,6 @@ class ImportCertificates(Resource):
         rowNum=table.nrows #sheet行数
 
         for i in range(1,rowNum):
-
             newC = Certificate()
             row_data=table.row_values(i)
             newC.project_id = str(row_data[0])
@@ -460,9 +459,6 @@ class ImportCertificates(Resource):
             newC.giver = str(row_data[7])
             newC.date = str(row_data[8])
             newC.user_id = user_id
-
-            print("证书是：")
-            print(marshal(newC, certificate_fields))
 
             # 验证新增证书的项目是否存在
             pro = Project.query.filter(

@@ -86,7 +86,7 @@ export default {
       UserInfo_show:{
         username: "",
         phone: "",
-        password: "",
+        // password: "",
         // password_again:"",
       },
       UserInfo_edit:{
@@ -94,6 +94,7 @@ export default {
         username: "",
         phone: "",
         password: "",
+        repassword:""
         // password_again:"",
       },
       index1: 0, //设置默认index值
@@ -147,7 +148,6 @@ export default {
           alert(resp.msg);
           //关闭弹窗
           this.handleClose();
-          
         }else{
           alert(resp.msg);
         }

@@ -55,10 +55,6 @@ class UserLogin(Resource):
             token=str(uuid.uuid4()).replace('-','')+str(random.randint(100,999))
             #存储用户的信息
             cache.set(token, user.user_id,timeout=60*60*24)
-            #向session写入数据
-            # session['user_id'] = user.user_id
-            # session['token']=token
-            # print(session.get(token))
             return {'re_code':RET.OK, 'msg':'登录成功', 'user':marshal(user,user_fields),'token':token}
         else:
             # 用户名或密码不正确
@@ -120,39 +116,11 @@ class UserCenter(Resource):
                 if password == repassword:
                     user.password = password
                     db.session.commit()
-                    return {'re_code': RET.OK, 'msg': '修改密码成功'}
+                    return {'re_code': RET.OK, 'msg': '修改密码成功','user':marshal(user,user_fields)}
                 else:
                     return {'re_code': RET.PWDERR, 'msg': '两次密码不一致！'}
             else:
                 return{'re_code':RET.NODATA,'msg':'请再次输入密码！'}
-
-        # #若修改用户名
-        # if username:
-        #     # 验证是否有重名用户
-        #     name = UserInfo.query.filter(UserInfo.username == username).first()
-        #     if name:
-        #         return jsonify(re_code=RET.DATAEXIST, msg="该用户名已被注册,请修改！")
-        #     else:
-        #         user.username = username
-        #
-        # #若修改手机
-        # if phone:
-        #     #验证手机号是否唯一
-        #     user_phone=UserInfo.query.filter(UserInfo.phone==phone).first()
-        #     if user_phone:
-        #         return jsonify(re_code=RET.DATAEXIST, msg="该手机号已被注册,请修改！")
-        #     else:
-        #         user.phone = phone
-        #
-        # #若修改密码
-        # if repassword:
-        #     #若两次输入密码一致
-        #     if password == repassword:
-        #         user.password = password
-        #         db.session.commit()
-        #         return {'re_code': RET.OK, 'msg': '修改密码成功'}
-        #     else:
-        #         return {'re_code': RET.PWDERR, 'msg': '两次密码不一致！'}
 
         db.session.commit()
         user = UserInfo.query.filter(UserInfo.user_id == user_id).first()
